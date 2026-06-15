@@ -1,0 +1,113 @@
+%!TEX root = ./template-skripsi.tex
+%-------------------------------------------------------------------------------
+% 								BAB I
+% 							LATAR BELAKANG
+%-------------------------------------------------------------------------------
+
+\chapter{LATAR BELAKANG}
+
+\section{Latar Belakang Masalah}
+Kemampuan CNN dalam melakukan ekstraksi fitur hirarkis pada spatial 
+data matriks menjadikannya sebagai salah satu metode yang paling banyak 
+digunakan dalam proses pengolahan citra dan visi. Proses ekstraksi fitur 
+pada data gambar berskala besar dilakukan oleh secara otomatis dan 
+menjadikan CNN sebagai fondasi utama dalam implementasi pengolahan citra 
+dan visi untuk pengenalan pola, objek hingga karakter 
+\cite{Elharrouss2022BackbonesReviewFE,AlexNetPaper}. Keunggulan ini 
+mendorong adopsi dan implementasi di berbagai bidang terutama sistem tertanam. 
+Saat ini implementasi CNN banyak dilakukan di GPU dan CPU. Konsumsi daya pada GPU 
+sangat besar dan boros baik pada saat proses pelatihan model maupun pada saat mode inferensial\cite{GPUBOROS, GPUBATCHINFERENCE}. 
+Hal ini terjadi terutama pada GPU, karena overhead komunikasi data bus pada batch berukuran kecil sehingga penggunaan daya 
+sangat tidak efisien. 
+
+Keterbatasan implementasi CNN pada CPU dan GPU menjadi semakin
+penting ketika CNN diterapkan pada sistem tertanam yang membutuhkan
+pemrosesan citra secara langsung, cepat, dan hemat daya\cite{Grigorescu2020AutonomousDrivingSurvey}. Pada aplikasi
+seperti kamera cerdas, robotika, dan kendaraan otonom, data visual
+diperoleh secara terus-menerus dari sensor sehingga proses komputasi
+tidak cukup hanya akurat, tetapi juga harus memiliki latensi rendah.
+Oleh karena itu, pendekatan \emph{edge computation} dan
+\emph{embedded vision} menjadi salah satu solusi karena proses
+inferensi dapat dilakukan lebih dekat dengan sumber data.
+
+Salah satu alternatif perangkat keras yang dapat digunakan untuk 
+mempercepat komputasi CNN adalah FPGA. FPGA memiliki keunggulan karena arsitektur perangkat 
+kerasnya dapat dikonfigurasi sesuai kebutuhan algoritma. 
+Berbeda dengan CPU dan GPU yang menggunakan arsitektur 
+komputasi umum, FPGA memungkinkan perancang untuk 
+membangun jalur data khusus, menerapkan paralelisme pada 
+tingkat operasi, serta menggunakan teknik \emph{pipeline} untuk 
+meningkatkan \emph{throughput}. Karakteristik ini sesuai dengan 
+operasi CNN yang bersifat berulang, terstruktur, dan memiliki 
+pola komputasi yang dapat dipetakan ke dalam perangkat keras pola
+\cite{Guo2019FPGANNAcceleratorSurvey,Abdelouahab2018CNNFPGASurvey}.
+
+Penelitian ini berfokus pada perancangan dan implementasi akselerator CNN berbasis 
+FPGA dengan komputasi \emph{fixed-point} yang berjalan dengan daya 
+rendah. Akselerator dirancang untuk menjalankan 
+proses inferensi CNN secara perangkat keras dengan memanfaatkan 
+paralelisme, \emph{pipeline}, dan optimasi representasi data. 
+Selain itu, penelitian ini juga membahas integrasi sistem dengan 
+perangkat kamera dan jalur tampilan citra, sehingga sistem tidak 
+hanya diuji sebagai modul komputasi terpisah, tetapi juga sebagai 
+bagian dari sistem \emph{embedded vision} yang menerima data visual 
+dari lingkungan nyata.
+
+\section{Rumusan Masalah}
+Implementasi CNN pada CPU dan GPU masih membutuhkan \emph{resource} komputasi yang 
+besar, terutama dari sisi konsumsi daya dan efisiensi inferensi pada 
+sistem tertanam. Upaya untuk menekan konsumsi daya pada perangkat 
+komputasi umum sering kali berdampak pada penurunan performa sehingga 
+latensi inferensi menjadi lebih besar. Sedangkan kebutuhan akan sistem 
+yang efisien secara daya dan instan semakin dibutuhkan.
+
+\section{Tujuan Penelitian}
+Tujuan penelitian ini adalah untuk menunjukan potensi FPGA sebagai platform ideal disamping CPU dan GPU pada implementasi CNN sampai ketahap \emph{Deployment}.
+
+\section{Batasan Masalah}
+Batasan masalah pada penelitian ini adalah:
+\begin{enumerate}
+\item Pada penelitian ini \emph{board} FPGA yang digunakan adalah ARTY 7 100T.
+\item Kamera yang digunakan adalah OV7670.
+\item Streaming vidio dilakukan lewat VGA, dengan modul VGA PMOD Digilent.
+\item Keterbatasan \emph{resource} pada FPGA memungkinkan penelitian menggunakan model yang tidak terlalu besar.
+\item \emph{Dataset} yang digunakan adalah \emph{Dataset} MNIST, dengan ukuran 28x28 \emph{pixel} \emph{channel} 1.
+\item \emph{Training} model dilakukan di CPU python.
+\end{enumerate}
+
+
+\section{Manfaat Penelitian}
+Penelitian ini diharapkan dapat memberikan kontribusi dalam pengembangan implementasi CNN pada perangkat FPGA, khususnya pada penggunaan komputasi \emph{fixed-point}, pemetaan paralelisme operasi konvolusi, dan penerapan \emph{pipeline} untuk mempercepat proses inferensi. Selain itu, penelitian ini dapat menjadi referensi dalam memahami proses perancangan akselerator CNN berbasis perangkat keras untuk aplikasi \emph{embedded vision}.
+
+\section{Sistematika Penulisan}
+\noindent
+\textbf{BAB I : PENDAHULUAN}
+
+Pada bab ini dijelaskan latar belakang, rumusan masalah, batasan, tujuan, manfaat, dan sistematika penulisan.\\
+
+\noindent
+\textbf{BAB II : TINJAUAN PUSTAKA DAN LANDASAN TEORI}
+
+Pada bab ini dijelaskan teori-teori dan penelitian terdahulu yang digunakan sebagai acuan dan dasar dalam penelitian.\\
+
+\noindent
+\textbf{BAB III : METODOLOGI PENELITIAN}
+
+Pada bab ini dijelaskan metode yang digunakan dalam penelitian meliputi langkah kerja, pertanyaan penilitian, alat dan bahan, serta tahapan dan alur penelitian.\\
+
+\noindent
+\textbf{BAB IV : HASIL DAN PEMBAHASAN}
+
+Pada bab ini dijelaskan hasil penelitian dan pembahasannya.\\
+
+\noindent
+\textbf{BAB V : KESIMPULAN DAN SARAN}
+
+Pada bab ini ditulis kesimpulan akhir dari penelitian dan saran untuk pengembangan penelitian selanjutnya.\\
+
+% Baris ini digunakan untuk membantu dalam melakukan sitasi
+% Karena diapit dengan comment, maka baris ini akan diabaikan
+% oleh compiler LaTeX.
+\begin{comment}
+\bibliography{daftar-pustaka}
+\end{comment}

@@ -1,0 +1,300 @@
+%-------------------------------------------------------------------------------
+%                      Template Naskah Skripsi
+%               	Berdasarkan format JTETI FT UGM
+% 						(c) @gunturdputra 2014
+%-------------------------------------------------------------------------------
+
+%Template pembuatan naskah skripsi.
+\documentclass{jtetiskripsi}
+
+%Untuk prefiks pada daftar gambar dan tabel
+\usepackage[titles]{tocloft}
+\renewcommand\cftfigpresnum{Gambar\  }
+\renewcommand\cfttabpresnum{Tabel\   }
+
+%Untuk hyperlink dan table of content
+\usepackage{hyperref}
+\newlength{\mylenf}
+\settowidth{\mylenf}{\cftfigpresnum}
+\setlength{\cftfignumwidth}{\dimexpr\mylenf+2em}
+\setlength{\cfttabnumwidth}{\dimexpr\mylenf+2em}
+
+%Untuk Bold Face pada Keterangan Gambar
+\usepackage[labelfont=bf]{caption}
+
+%Untuk caption dan subcaption
+\usepackage{caption}
+\usepackage{subcaption}
+
+
+%-----------------------------------------------------------------
+%Disini awal masukan untuk data proposal skripsi
+%-----------------------------------------------------------------
+\titleind{Integrasi Sistem Akselerator CNN Berbasis Komputasi Fixed-Point 16-Bit pada Board FPGA}
+
+\fullname{Alex Cinatra Hutasoit}
+
+\idnum{22/505820/TK/55377}
+
+\approvaldate{15 Juni 2026}
+
+\degree{Sarjana Teknologi Informasi}
+
+\yearsubmit{2026}
+
+\program{Teknik Informasi}
+
+\dept{Teknik Elektro dan Teknologi Informasi}
+
+\firstsupervisor{Igi Ardiyanto, S.T., M.Eng.}
+\firstnip{1987 0109 2020 12 1 005}
+
+\secondsupervisor{ Agus Bejo, S.T., M.Eng.}
+\secondnip{1980 0101 2015 04 1 002}
+%-----------------------------------------------------------------
+%Disini akhir masukan untuk data proposal skripsi
+%-----------------------------------------------------------------
+
+\begin{document}
+
+\cover
+
+\approvalpage
+
+%-----------------------------------------------------------------
+%Disini awal masukan Acknowledment
+%-----------------------------------------------------------------
+\acknowledgment
+\begin{flushright}
+\emph{Untuk Ibu, Bapak,\\dan Adik-adikku tercinta.}
+\end{flushright}
+
+%-----------------------------------------------------------------
+%Disini awal masukan untuk Prakata
+%-----------------------------------------------------------------
+\preface
+Assalamu'alaikum Wr. Wb.
+
+\vspace{0.5cm}
+
+Puji dan syukur ke hadirat Allah Yang Mahakuasa atas berkat dan karunia Roh Kudus sehingga tugas akhir ini dapat terselesaikan dengan baik. Penulis mengucapkan terima kasih atas arahan, bantuan, dukungan, dan doa yang telah diberikan oleh berbagai pihak. Pada kesempatan ini penulis mengucapkan terima kasih sedalam-dalamnya kepada pihak-pihak, di antaranya:
+
+\begin{enumerate}
+\item{Bapak Prof. Ir. Hanung Adi Nugroho, S.T., M.Eng., Ph.D., IPM., SMIEEE., selaku Ketua Jurusan Teknik Elektro dan Teknologi Informasi Fakultas Teknik Universitas Gadjah Mada,}
+\item{Bapak Dr.Eng. Ir. Igi Ardiyanto, S.T., M.Eng., IPM., ASEAN Eng., SMIEEE., selaku dosen pembimbing pertama yang telah memberikan banyak bantuan, bimbingan, serta arahan dalam Tugas Akhir ini,}
+\item{Bapak Ir. Agus Bejo, S.T., M.Eng., D.Eng., IPM., selaku dosen pembimbing kedua yang juga telah memberikan banyak bantuan, bimbingan, serta arahan dalam Tugas Akhir dan kegiatan-kegiatan yang lain,}
+\item{Bapak Widyawan, S.T., M.Sc., Ph.D., selaku dosen pembimbing akademik yang telah memberikan pendampingan dan arahan selama masa perkuliahan,}
+\item{Seluruh Dosen di Jurusan Teknik Elektro dan Teknologi Informasi FT UGM, yang tidak bisa disebutkan satu-satu, atas ilmu dan bimbingannya selama penulis berkuliah di JTETI,}
+\end{enumerate}
+
+Akhir kata penulis berharap semoga skripsi ini dapat memberikan manfaat dalam bidang teknologi informasi untuk penelitian selanjutnya di masa mendatang.
+
+\vspace{0.5cm}
+
+Wassalamu'alaikum Wr. Wb.
+
+\begin{tabular}{p{7.5cm}c}
+&Yogyakarta, 15 Juni 2026\\
+&\\
+&\\
+&\textbf{Alex Cinatra Hutasoit}
+\end{tabular}
+
+%-----------------------------------------------------------------
+%Disini akhir masukan untuk muka skripsi
+%-----------------------------------------------------------------
+\tableofcontents
+\addcontentsline{toc}{chapter}{DAFTAR ISI}
+\listoftables
+\addcontentsline{toc}{chapter}{DAFTAR TABEL}
+\listoffigures
+\addcontentsline{toc}{chapter}{DAFTAR GAMBAR}
+
+%-----------------------------------------------------------------
+%Daftar Singkatan [Optional]
+%-----------------------------------------------------------------
+\singkatan
+\noindent
+
+\begin{tabular}{p{20pt}p{3pt}l}
+\textbf{A}\\
+AXI & & Advanced eXtensible Interface\\
+\\
+\end{tabular}
+
+\begin{tabular}{p{20pt}p{3pt}l}
+\textbf{B}\\
+BD & & Block Design\\
+BRAM & & Block Random Access Memory\\
+BUFG & & Global Clock Buffer\\
+\\
+\end{tabular}
+
+\begin{tabular}{p{20pt}p{3pt}l}
+\textbf{C}\\
+CLK & & Clock\\
+CNN & & Convolutional Neural Network\\
+CONV & & Convolution\\
+CPU & & Central Processing Unit\\
+CSV & & Comma-Separated Values\\
+\\
+\end{tabular}
+
+\begin{tabular}{p{20pt}p{3pt}l}
+\textbf{D}\\
+DRC & & Design Rule Check\\
+DSP & & Digital Signal Processing\\
+DDR & & Double Data Rate\\
+\\
+\end{tabular}
+
+\begin{tabular}{p{20pt}p{3pt}l}
+\textbf{F}\\
+FF & & Flip Flop\\
+FIFO & & First In First Out\\
+FWFT & & First Word Fall Through\\
+FPGA & & Field Programmable Gate Array\\
+FPS & & Frame Per Second\\
+\\
+\end{tabular}
+
+\begin{tabular}{p{20pt}p{3pt}l}
+\textbf{G}\\
+GPIO & & General-Purpose Input/Output\\
+GPU & & Graphics Processing Unit\\
+\\
+\end{tabular}
+
+\begin{tabular}{p{20pt}p{3pt}l}
+\textbf{H}\\
+HDL & & Hardware Descriptive Language\\
+\\
+\end{tabular}
+
+\begin{tabular}{p{20pt}p{3pt}l}
+\textbf{I}\\
+I/O & & Input Output\\
+I2C & & Inter-Integrated Circuit\\
+IOB & & Input/Output Block\\
+\\
+\end{tabular}
+
+\begin{tabular}{p{20pt}p{3pt}l}
+\textbf{J}\\
+JSON & & Javascript Object Notation\\
+\\
+\end{tabular}
+
+\begin{tabular}{p{20pt}p{3pt}l}
+\textbf{L}\\
+LUT & & Look-Up Table\\
+\\
+\end{tabular}
+
+\begin{tabular}{p{20pt}p{3pt}l}
+\textbf{M}\\
+MIG & & Memory Interface Generator\\
+MNIST & & Modified National Institute of Standards and Technology\\
+MUX & & Multiplexer\\
+\\
+\end{tabular}
+
+\begin{tabular}{p{20pt}p{3pt}l}
+\textbf{N}\\
+NPZ & & NumPy Compressed Archive\\
+\\
+\end{tabular}
+
+\begin{tabular}{p{20pt}p{3pt}l}
+\textbf{S}\\
+SCCB & & Serial Camera Control Bus\\
+SOC & & System On Chip\\
+SPI & & Serial Peripheral Interface\\
+\\
+\end{tabular}
+
+\begin{tabular}{p{20pt}p{3pt}l}
+\textbf{T}\\
+TNS & & Total Negative Slack\\
+THS & & Total Hold Slack\\
+\\
+\end{tabular}
+
+\begin{tabular}{p{20pt}p{3pt}l}
+\textbf{U}\\
+UART & & Universal Asynchronous Receiver-Transmitter\\
+UI & & User Interface\\
+URAM & & Ultra Random Access Memory\\
+\\
+\end{tabular}
+
+\begin{tabular}{p{20pt}p{3pt}l}
+\textbf{W}\\
+WNS & & Worst Negative Slack\\
+WHS & & Worst Hold Slack\\
+WPWS & & Worst Pulse Width Slack\\
+\\
+\end{tabular}
+
+
+%-----------------------------------------------------------------
+%Disini awal masukan Intisari
+%-----------------------------------------------------------------
+\begin{abstractind}
+Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.
+
+
+\bigskip
+\noindent
+\textbf{Kata kunci :} \emph{CNN}, \emph{ARTY 7}, \emph{OV7670}, Serial, Komputasi Pararel.
+\end{abstractind}
+
+\begin{abstracteng}
+\emph{
+Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.}
+
+\emph{Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.}
+
+\bigskip
+\noindent
+\textbf{Keywords :} \emph{CNN}, \emph{ARTY 7}, \emph{OV7670}, Serial, Pararel Computation.
+\end{abstracteng}
+%-----------------------------------------------------------------
+%Disini akhir masukan Intisari
+%-----------------------------------------------------------------
+
+%-----------------------------------------------------------------
+%Disini awal masukan untuk Bab
+%-----------------------------------------------------------------
+\include{bab1}
+
+\include{bab2}
+
+\include{bab3}
+
+\include{bab4}
+
+\include{bab5}
+
+%-----------------------------------------------------------------
+%Disini akhir masukan Bab
+%-----------------------------------------------------------------
+
+
+%-----------------------------------------------------------------
+% Disini awal masukan untuk Daftar Pustaka
+% - Daftar pustaka diambil dari file .bib yang ada pada folder ini
+%   juga.
+% - Untuk memudahkan dalam memanajemen dan menggenerate file .bib
+%   gunakan reference manager seperti Mendeley, Zotero, EndNote,
+%   dll.
+%-----------------------------------------------------------------
+\bibliography{IEEEabrv,daftar-pustaka}
+\addcontentsline{toc}{chapter}{DAFTAR PUSTAKA}
+%-----------------------------------------------------------------
+%Disini akhir masukan Daftar Pustaka
+%-----------------------------------------------------------------
+
+\end{document}

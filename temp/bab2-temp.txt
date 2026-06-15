@@ -1,0 +1,98 @@
+\chapter{TINJAUAN PUSTAKA DAN DASAR TEORI}                
+
+\section{Tinjauan Pustaka}
+
+
+
+\section{Landasan Teori}
+Ne per tota mollis suscipit. Ullum labitur vim ut, ea dicit eleifend dissentias sit. Duis praesent expetenda ne sed. Sit et labitur albucius elaboraret. Ceteros efficiantur mei ad. Hendrerit vulputate democritum est at, quem veniam ne has, mea te malis ignota volumus.
+
+Eros reprimique vim no. Alii legendos volutpat in sed, sit enim nemore labores no. No odio decore causae has. Vim te falli libris neglegentur, eam in tempor delectus dignissim, nam hinc dictas an.
+
+Pro omnium incorrupte ea. Elitr eirmod ei qui, ex partem causae disputationi nec. Amet dicant no vis, eum modo omnes quaeque ad, antiopam evertitur reprehendunt pro ut. Nulla inermis est ne. Choro insolens mel ne, eos labitur nusquam eu, nec deserunt reformidans ut. His etiam copiosae principes te, sit brute atqui definiebas id.
+
+  \subsection{Dasar Teori}
+  Pro omnium incorrupte ea. Elitr eirmod ei qui, ex partem causae disputationi nec. Amet dicant no vis, eum modo omnes quaeque ad, antiopam evertitur reprehendunt pro ut. Nulla inermis est ne. Choro insolens mel ne, eos labitur nusquam eu, nec deserunt reformidans ut. His etiam copiosae principes te, sit brute atqui definiebas id.
+
+  \subsection{Analisis Perbandingan Metode}
+  Pro omnium incorrupte ea. Elitr eirmod ei qui, ex partem causae disputationi nec. Amet dicant no vis, eum modo omnes quaeque ad, antiopam evertitur reprehendunt pro ut. Nulla inermis est ne. Choro insolens mel ne, eos labitur nusquam eu, nec deserunt reformidans ut. His etiam copiosae principes te, sit brute atqui definiebas id.
+
+
+
+Berdasarkan penelitian yang dilakukan oleh Solovyev et al., implementasi CNN pada 
+FPGA untuk kebutuhan \emph{real-time processing} dapat dilakukan dengan mengubah 
+komputasi \emph{floating-point} menjadi \emph{fixed-point} agar lebih sesuai dengan 
+karakteristik hardware \cite{Solovyev2019FixedPointCNN}. Penelitian tersebut 
+menggunakan dataset MNIST yang dimodifikasi untuk menyesuaikan kondisi citra yang 
+diperoleh dari kamera. Proses augmentasi data dilakukan dengan beberapa transformasi, 
+seperti inversi warna, rotasi acak sebesar 10 derajat, perubahan intensitas, serta 
+penambahan \emph{noise} acak dari $0\%$ sampai $10\%$. Bobot hasil pelatihan kemudian 
+direpresentasikan dalam format fixed-point dan disimpan pada memori internal FPGA. Hasil 
+penelitian menunjukkan bahwa pada pemilihan lebar bit tertentu, implementasi \emph{fixed-point} 
+dapat menghasilkan prediksi yang sama dengan implementasi \emph{software} berbasis \emph{floating-point}.
+
+Pada penelitian yang dilakukan oleh Qiu et al., implementasi CNN pada FPGA dilakukan 
+untuk model yang lebih besar pada dataset ImageNet \cite{Qiu2016GoingDeeperFPGA}. 
+Penelitian tersebut menerapkan \emph{dynamic-precision data quantization} untuk 
+mengurangi kebutuhan memori dan bandwidth. Hasil penelitian menunjukkan bahwa 
+penggunaan kuantisasi 8/4-bit pada model VGG16 hanya menyebabkan penurunan akurasi 
+sekitar $0.4\%$. Selain itu, implementasi model \emph{VGG16-SVD} pada platform 
+Xilinx Zynq ZC706 dengan kuantisasi 16-bit menghasilkan \emph{top-5 accuracy} 
+sebesar $86.66\%$ dengan kecepatan $4.45$ fps. Penelitian ini juga menunjukkan 
+bahwa lapisan konvolusi cenderung bersifat \emph{compute-centric}, sedangkan 
+lapisan \emph{fully connected} cenderung bersifat \emph{memory-centric}.
+
+Penelitian yang dilakukan oleh Dua et al. mengusulkan arsitektur \emph{Systolic-CNN}, 
+yaitu akselerator CNN berbasis FPGA yang dirancang menggunakan pendekatan \emph{systolic array} 
+dan OpenCL \cite{Dua2020SystolicCNN}. Penelitian tersebut menguji beberapa model CNN 
+seperti \emph{AlexNet}, \emph{ResNet-50}, \emph{ResNet-152}, \emph{RetinaNet}, dan 
+\emph{Light-weight RetinaNet}. Hasil penelitian menunjukkan bahwa arsitektur tersebut 
+mampu menjalankan inferensi dalam skala milisekon dan dapat memanfaatkan resource DSP 
+secara tinggi. Penelitian ini relevan karena menunjukkan bahwa pemetaan paralelisme 
+dan pemanfaatan DSP menjadi faktor penting dalam meningkatkan performa akselerator 
+CNN pada FPGA.
+
+Integrasi FPGA untuk melakukan \emph{streaming} video juga dibahas pada penelitian 
+Navaneethan et al. \cite{Navaneethan2022OV7670VGA}. Penelitian tersebut mengimplementasikan 
+sistem pemrosesan video real-time menggunakan kamera OV7670 dan antarmuka VGA pada FPGA. 
+Sistem dikembangkan menggunakan Verilog HDL dan Xilinx Vivado, serta diimplementasikan pada 
+platform Spartan-6 dan Artix-7. Penelitian ini menunjukkan bahwa FPGA dapat digunakan untuk 
+membangun sistem akuisisi dan tampilan video real-time dengan penggunaan resource hardware 
+yang relatif efisien.
+
+Selain itu, Solovyev et al. juga menggunakan kamera OV7670 pada board DE0-Nano untuk melakukan 
+pengenalan digit tulisan tangan secara real-time \cite{Solovyev2019FixedPointCNN}. Pada sistem 
+tersebut, citra dari kamera disimpan terlebih dahulu pada SDRAM sebelum diproses dan ditampilkan. 
+Penggunaan memori eksternal diperlukan karena data frame video membutuhkan kapasitas penyimpanan 
+yang lebih besar dibandingkan kapasitas memori internal FPGA. Hal ini menunjukkan bahwa integrasi 
+memori eksternal menjadi penting ketika sistem FPGA tidak hanya melakukan akuisisi citra, tetapi juga 
+menjalankan pemrosesan CNN.
+
+Pada penelitian Aqueel et al., pembahasan difokuskan pada desain dan implementasi DDR3 SDRAM controller 
+pada FPGA untuk mendukung akses memori berkecepatan tinggi \cite{Aqueel2011DDR3Controller}. 
+Penelitian tersebut relevan sebagai dasar teori mengenai kebutuhan controller khusus untuk 
+mengakses DDR3 SDRAM. Namun, untuk sistem berbasis Xilinx FPGA, akses DDR3 umumnya dapat dilakukan 
+melalui IP Memory Interface Generator atau MIG, yang dapat dihubungkan dengan sistem berbasis AXI. 
+Dengan demikian, pada penelitian ini AXI, SmartConnect, dan MIG digunakan sebagai bagian dari 
+integrasi sistem memori eksternal untuk mendukung proses baca dan tulis frame buffer pada DDR3 SDRAM.
+
+Kamera \emph{OV7670} merupakan sensor kamera CMOS yang banyak digunakan pada sistem akuisisi 
+citra berbasis FPGA karena memiliki antarmuka data paralel dan konfigurasi register yang relatif sederhana. 
+Konfigurasi kamera dilakukan melalui \emph{Serial Camera Control Bus} atau \emph{SCCB}, yaitu antarmuka 
+komunikasi yang digunakan untuk mengatur parameter internal kamera seperti format keluaran citra, resolusi, 
+pengaturan warna, serta mode operasi sensor \cite{OmniVision2006OV7670}. Selain jalur konfigurasi, proses 
+pembacaan data citra dari \emph{OV7670} dilakukan melalui sinyal \emph{pixel clock}, data paralel, serta sinyal 
+sinkronisasi seperti \emph{HREF} dan \emph{VSYNC}. Sinyal \emph{HREF} digunakan untuk menandai bahwa data 
+piksel pada satu baris sedang valid, sedangkan sinyal \emph{VSYNC} digunakan sebagai penanda pergantian 
+\emph{frame}. Oleh karena itu, kedua sinyal tersebut menjadi dasar dalam perancangan modul \emph{capture} 
+agar FPGA dapat mengetahui kapan data piksel harus disimpan dan kapan satu \emph{frame} telah selesai diterima.
+
+Pada sisi keluaran, antarmuka \emph{VGA} digunakan untuk menampilkan citra hasil pembacaan kamera ke 
+monitor secara real-time. Tampilan \emph{VGA} dibentuk melalui pengiriman data warna RGB yang disinkronkan 
+dengan sinyal \emph{horizontal sync} dan \emph{vertical sync}. Sinyal \emph{horizontal sync} berfungsi 
+mengatur perpindahan baris tampilan, sedangkan \emph{vertical sync} berfungsi mengatur perpindahan 
+antar-\emph{frame} pada layar. Dalam implementasi FPGA, modul \emph{VGA controller} perlu menghasilkan 
+\emph{timing} yang sesuai dengan resolusi tampilan yang digunakan, kemudian membaca data piksel dari 
+\emph{frame buffer} untuk dikirimkan ke monitor. Dengan demikian, integrasi \emph{OV7670} dan \emph{VGA} 
+membutuhkan sinkronisasi yang tepat antara proses akuisisi citra, penyimpanan data, dan pembacaan data 
+untuk tampilan video.
