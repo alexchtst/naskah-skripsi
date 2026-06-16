@@ -76,7 +76,6 @@
   archiveprefix = {arXiv}
 }
 
-```bibtex
 % ============================================================
 % 1. CNN IMPLEMENTATION ON FPGA
 % ============================================================
@@ -291,4 +290,264 @@
   url          = {https://github.com/AngeloJacobo/FPGA_OV7670_Camera_Interface},
   note         = {Accessed: 2026-06-15}
 }
+
+
+% sitasi landasan teori
+@manual{ARM2020AXI,
+  title        = {AMBA AXI and ACE Protocol Specification},
+  author       = {{Arm Limited}},
+  organization = {Arm Limited},
+  year         = {2020},
+  number       = {ARM IHI 0022H},
+  note         = {Non-Confidential},
+  url          = {https://developer.arm.com/documentation/ihi0022/latest}
+}
+
+@manual{ARM2020IntroAXI,
+  title        = {Introduction to AMBA AXI},
+  author       = {{Arm Limited}},
+  organization = {Arm Limited},
+  year         = {2020},
+  url          = {https://developer.arm.com/documentation/102202/latest}
+}
+
+@book{Wakerly2005DigitalDesign,
+  author    = {John F. Wakerly},
+  title     = {Digital Design: Principles and Practices},
+  edition   = {4},
+  publisher = {Pearson Prentice Hall},
+  year      = {2005},
+  isbn      = {9780131863897}
+}
+
+@book{Harris2021DigitalDesign,
+  author    = {Sarah L. Harris and David Harris},
+  title     = {Digital Design and Computer Architecture},
+  edition   = {2},
+  publisher = {Morgan Kaufmann},
+  year      = {2021},
+  isbn      = {9780128200643}
+}
+
+@manual{Xilinx2018DSP48E1,
+  title        = {7 Series DSP48E1 Slice User Guide},
+  author       = {{Xilinx}},
+  organization = {Xilinx},
+  year         = {2018},
+  number       = {UG479},
+  url          = {https://docs.amd.com/v/u/en-US/ug479_7Series_DSP48E1}
+}
+
+@manual{Xilinx2024MIG,
+  title        = {7 Series FPGAs Memory Interface Solutions User Guide},
+  author       = {{AMD Xilinx}},
+  organization = {Advanced Micro Devices, Inc.},
+  year         = {2024},
+  number       = {UG586},
+  url          = {https://docs.amd.com/r/en-US/ug586_7Series_MIS}
+}
+
+@manual{Xilinx2020SeriesOverview,
+  title        = {7 Series FPGAs Data Sheet: Overview},
+  author       = {{Xilinx}},
+  organization = {Xilinx},
+  year         = {2020},
+  number       = {DS180},
+  url          = {https://docs.amd.com/v/u/en-US/ds180_7Series_Overview}
+}
+
+@manual{AMD2024Artix7,
+  title        = {Artix-7 FPGAs Data Sheet: DC and AC Switching Characteristics},
+  author       = {{AMD Xilinx}},
+  organization = {Advanced Micro Devices, Inc.},
+  year         = {2024},
+  number       = {DS181},
+  url          = {https://docs.amd.com/v/u/en-US/ds181_Artix_7_Data_Sheet}
+}
+
+@manual{DigilentArtyA7,
+  title        = {Arty A7 Reference Manual},
+  author       = {{Digilent}},
+  organization = {Digilent Inc.},
+  year         = {2024},
+  url          = {https://digilent.com/reference/programmable-logic/arty-a7/reference-manual}
+}
+
+@inproceedings{Cummings2002AsyncFIFO,
+  author    = {Clifford E. Cummings and Peter Alfke},
+  title     = {Simulation and Synthesis Techniques for Asynchronous FIFO Design},
+  booktitle = {SNUG San Jose},
+  year      = {2002},
+  publisher = {Sunburst Design},
+  url       = {https://www.sunburst-design.com/papers/CummingsSNUG2002SJ_FIFO1.pdf}
+}
+
+@article{Yan2022ResourceMultiplexingCNN,
+  author  = {Feng Yan and Feng Wang and Chunlei Liu and Yiyang Wang and Jingyang Zhou},
+  title   = {Design of Convolutional Neural Network Processor Based on FPGA Resource Multiplexing Architecture},
+  journal = {Sensors},
+  volume  = {22},
+  number  = {16},
+  pages   = {5967},
+  year    = {2022},
+  doi     = {10.3390/s22165967},
+  url     = {https://www.mdpi.com/1424-8220/22/16/5967}
+}
+
+@inproceedings{Jacob2018Quantization,
+  author    = {Benoit Jacob and Skirmantas Kligys and Bo Chen and Menglong Zhu and Matthew Tang and Andrew Howard and Hartwig Adam and Dmitry Kalenichenko},
+  title     = {Quantization and Training of Neural Networks for Efficient Integer-Arithmetic-Only Inference},
+  booktitle = {Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
+  pages     = {2704--2713},
+  year      = {2018},
+  doi       = {10.1109/CVPR.2018.00286},
+  url       = {https://openaccess.thecvf.com/content_cvpr_2018/html/Jacob_Quantization_and_Training_CVPR_2018_paper.html}
+}
+
+@article{Goyal2021FixedPointCNN,
+  author        = {Rishabh Goyal and Joaquin Vanschoren and Victor van Acht and Stephan Nijssen},
+  title         = {Fixed-point Quantization of Convolutional Neural Networks for Quantized Inference on Embedded Platforms},
+  journal       = {arXiv preprint arXiv:2102.02147},
+  year          = {2021},
+  eprint        = {2102.02147},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.LG},
+  url           = {https://arxiv.org/abs/2102.02147}
+}
+
+@article{Guo2019FPGANNInferenceSurvey,
+  author  = {Kaiyuan Guo and Shulin Zeng and Jincheng Yu and Yu Wang and Huazhong Yang},
+  title   = {A Survey of FPGA-Based Neural Network Inference Accelerators},
+  journal = {ACM Transactions on Reconfigurable Technology and Systems},
+  volume  = {12},
+  number  = {1},
+  pages   = {1--26},
+  year    = {2019},
+  doi     = {10.1145/3289185},
+  url     = {https://dl.acm.org/doi/10.1145/3289185}
+}
+
+@manual{JEDEC2010DDR3,
+  title        = {DDR3 SDRAM Standard},
+  author       = {{JEDEC Solid State Technology Association}},
+  organization = {JEDEC},
+  year         = {2010},
+  number       = {JESD79-3E},
+  url          = {https://www.jedec.org/standards-documents/docs/jesd-79-3d}
+}
+
+@manual{OmniVision2007SCCB,
+  title        = {OmniVision Serial Camera Control Bus Functional Specification},
+  author       = {{OmniVision Technologies}},
+  organization = {OmniVision Technologies, Inc.},
+  year         = {2007},
+  url          = {https://people.ece.cornell.edu/land/courses/ece4760/FinalProjects/f2021/jfw225_aei23_dsb298/jfw225_aei23_dsb298/SCCBSpec_AN.pdf}
+}
+
+@manual{VESA2013DMT,
+  title        = {VESA Display Monitor Timing Standard},
+  author       = {{Video Electronics Standards Association}},
+  organization = {Video Electronics Standards Association},
+  year         = {2013},
+  number       = {Version 1.13},
+  url          = {https://glenwing.github.io/docs/VESA-DMT-1.13.pdf}
+}
+
+@manual{DigilentVGADisplay,
+  title        = {VGA Display Controller},
+  author       = {{Digilent}},
+  organization = {Digilent Inc.},
+  year         = {2024},
+  url          = {https://digilent.com/reference/learn/programmable-logic/tutorials/vga-display-congroller/start}
+}
+
+@misc{amd2023dsp68595,
+  author       = {{AMD}},
+  title        = {68595 - {DSP} Slice - Using Time Division Multiplexing or Overclocking the {DSP} Slices in {Xilinx} devices can greatly increase throughput and efficiency},
+  howpublished = {\url{https://adaptivesupport.amd.com/s/article/68595?language=en_US}},
+  year         = {2023},
+  month        = feb,
+  note         = {Diakses pada: 16 Juni 2026}
+}
+
+@article{Guo2019FPGANNInferenceSurvey,
+  author     = {Guo, Kaiyuan and Zeng, Shulin and Yu, Jincheng and Wang, Yu and Yang, Huazhong},
+  title      = {A Survey of FPGA-Based Neural Network Inference Accelerators},
+  journal    = {ACM Transactions on Reconfigurable Technology and Systems},
+  volume     = {12},
+  number     = {1},
+  articleno  = {2},
+  pages      = {1--26},
+  year       = {2019},
+  publisher  = {Association for Computing Machinery},
+  doi        = {10.1145/3289185},
+  url        = {https://doi.org/10.1145/3289185}
+}
+
+@inproceedings{Gupta2015LimitedPrecision,
+  author    = {Gupta, Suyog and Agrawal, Ankur and Gopalakrishnan, Kailash and Narayanan, Pritish},
+  title     = {Deep Learning with Limited Numerical Precision},
+  booktitle = {Proceedings of the 32nd International Conference on Machine Learning},
+  series    = {Proceedings of Machine Learning Research},
+  volume    = {37},
+  pages     = {1737--1746},
+  year      = {2015},
+  publisher = {PMLR},
+  url       = {https://proceedings.mlr.press/v37/gupta15.html}
+}
+
+@inproceedings{Lin2016FixedPointQuantization,
+  author    = {Lin, Darryl and Talathi, Sachin and Annapureddy, Sreekanth},
+  title     = {Fixed Point Quantization of Deep Convolutional Networks},
+  booktitle = {Proceedings of the 33rd International Conference on Machine Learning},
+  series    = {Proceedings of Machine Learning Research},
+  volume    = {48},
+  pages     = {2849--2858},
+  year      = {2016},
+  publisher = {PMLR},
+  url       = {https://proceedings.mlr.press/v48/linb16.html}
+}
+
+@article{Gysel2018Ristretto,
+  author  = {Gysel, Philipp and Pimentel, Jon and Motamedi, Mohammad and Ghiasi, Soheil},
+  title   = {Ristretto: A Framework for Empirical Study of Resource-Efficient Inference in Convolutional Neural Networks},
+  journal = {IEEE Transactions on Neural Networks and Learning Systems},
+  volume  = {29},
+  number  = {11},
+  pages   = {5784--5789},
+  year    = {2018},
+  doi     = {10.1109/TNNLS.2018.2808319}
+}
+
+@article{Krishnamoorthi2018QuantizingCNN,
+  author        = {Krishnamoorthi, Raghuraman},
+  title         = {Quantizing Deep Convolutional Networks for Efficient Inference: A Whitepaper},
+  journal       = {arXiv preprint arXiv:1806.08342},
+  year          = {2018},
+  eprint        = {1806.08342},
+  archiveprefix = {arXiv},
+  primaryclass  = {cs.LG},
+  url           = {https://arxiv.org/abs/1806.08342}
+}
+
+@manual{ARMAMBAAXI4Spec,
+  title        = {AMBA AXI and ACE Protocol Specification},
+  author       = {{Arm Ltd.}},
+  organization = {Arm Ltd.},
+  number       = {ARM IHI 0022H},
+  year         = {2017},
+  month        = dec,
+  url          = {https://developer.arm.com/-/media/Arm%20Developer%20Community/PDF/IHI0022H_amba_axi_protocol_spec.pdf}
+}
+
+@manual{XilinxMIGUG586,
+  title        = {7 Series FPGAs Memory Interface Solutions User Guide},
+  author       = {{Xilinx}},
+  organization = {Xilinx},
+  number       = {UG586},
+  year         = {2012},
+  month        = apr,
+  url          = {https://www.xilinx.com/support/documents/ip_documentation/mig_7series/v4_1/ug586_7Series_MIS.pdf}
+}
 ```
+
