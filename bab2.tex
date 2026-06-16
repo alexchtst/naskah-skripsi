@@ -644,6 +644,13 @@
 
 \section{Analisis Perbandingan Metode}
 
+Pada penelitian sebelumnya menunjukkan bahwa hasil inferensi CNN pada FPGA dapat 
+diselesaikan sebelum satu frame dapat selesai terbentuk. Camera OV7670 memiliki 
+30 FPS \cite{OmniVision2006OV7670}. Sedangkan latensi terbesar didapat pada nilai 150 FPS \cite{Solovyev2019FixedPointCNN}. 
+Sedangkan konsumsi daya pada FPGA relatif lebih rendah dibandingkan dengan CPU dan GPU. 
+Efisiensi daya ini pada penelitian yang dilakukan oleh Qasaimeh et al. dan Guo et al. \cite{Qasaimeh2019ComparingEE, Guo2019FPGANNInferenceSurvey}. 
+Hal ini menunjukkan bahwa FPGA cocok untuk digunakan dalam implementasi CNN dengan daya lebih rendah.
+
 \begin{table}[ht]
     \centering
     \caption{Perbandingan implementasi sistem pada penelitian terkait}
