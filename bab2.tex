@@ -2,61 +2,104 @@
 
 \section{Tinjauan Pustaka}
 
-Berdasarkan penelitian yang dilakukan oleh Solovyev et al. implementasi 
-CNN pada FPGA untuk realtime processing dapat dilakukan dengan 
-melakukan konversi \emph{floating-point} menjadi \emph{fixed-point} supaya lebih cocok dijalankan 
-dalam skala hardware \cite{Solovyev2019FixedPointCNN}. Penelitian ini 
-menggunakan data MNIST dalam melakukan pelatihan model. Selama proses 
-pelatihan model dilakukan augmentasi data berupa rotasi acak 10 derajat, inversi warna 
-dan \emph{noise} acak dari $0\%$ sampai $10\%$. Hasil pelatihan parameter model 
-memory disimpan sebagai blok memori. Hasil akurasi yang diimplementasikan pada model 
-dengan parameter yang sudah di kuantitasi memiliki hasil akurasi yang sama seperti 
-akurasi model yang diimplementasikan sebelum dikuantitasi.
+    Penelitian Che et al. dan Qasaimeh et al. menunjukkan bahwa pemilihan 
+    platform komputasi untuk aplikasi visi sangat dipengaruhi oleh 
+    karakteristik algoritma, latensi, dan kebutuhan energi 
+    \cite{Che2009AcceleratingAA,Qasaimeh2019ComparingEE}. CPU memiliki 
+    fleksibilitas tinggi, tetapi kurang efisien untuk komputasi CNN yang 
+    membutuhkan paralelisme besar. GPU mampu memberikan throughput tinggi, 
+    namun umumnya membutuhkan daya dan bandwidth memori yang lebih besar. 
+    Dalam konteks tersebut, FPGA menjadi alternatif karena operasi CNN 
+    seperti konvolusi, \emph{multiply-accumulate}, \emph{buffering}, dan 
+    \emph{pipeline} dapat dipetakan langsung ke sumber daya perangkat keras 
+    seperti DSP, BRAM, LUT, dan FF, sehingga sesuai untuk sistem 
+    \emph{embedded vision} yang membutuhkan latensi rendah dan konsumsi 
+    daya efisien \cite{XilinxWP389}.
 
-Sedangkan pada penelitian yang dilakukan oleh Qiu et al. implemetasi CNN pada FPGA dilakukan
-kuantitasi 4-bit dan 8-bit mengalami peneurunan akurasi sebesar $0.4\%$ pada model VGG16\cite{Qiu2016GoingDeeperFPGA}. 
-Sedangkan pada implementasi model \emph{VGG16-SVD} yang menghasilkan akurasi sebesar $86.66\%$ dengan 
-mengkuantitasi parameter 16-bit. Penelitian ini melakukan prediksi pada data citra dari \emph{image net}. 
+    Berdasarkan penelitian Solovyev et al., implementasi CNN pada FPGA 
+    untuk \emph{real-time processing} dilakukan dengan mengubah 
+    representasi \emph{floating-point} menjadi \emph{fixed-point} agar 
+    lebih sesuai dengan komputasi perangkat keras 
+    \cite{Solovyev2019FixedPointCNN}. Penelitian ini menggunakan dataset 
+    MNIST dengan augmentasi berupa rotasi acak 10 derajat, inversi warna, 
+    serta penambahan \emph{noise} dari $0\%$ sampai $10\%$. Setelah proses 
+    pelatihan, parameter CNN disimpan ke dalam blok memori FPGA dan 
+    digunakan pada proses inferensi. Implementasi dilakukan pada board 
+    \emph{DE0-Nano} berbasis FPGA \emph{Intel Cyclone IV}, dengan masukan 
+    citra dari kamera OV7670 dan keluaran tampilan melalui VGA. Citra dari 
+    kamera direduksi menjadi \emph{grayscale} berukuran $28 \times 28$ 
+    piksel untuk diproses oleh CNN, sehingga sistem mampu berjalan secara 
+    \emph{real-time} dengan kecepatan lebih dari 150 \emph{frame per second}. 
+    Penelitian ini menghasilkan akurasi model yang tidak berubah dengan 
+    model training sebelum kuantitasi.
 
-Implementasi CNN dilakukan pada arsitektur model \emph{AlexNet}, \emph{ResNet-50}, \emph{ResNet-152}, 
-\emph{RetinaNet} dan \emph{Light-weight RetinaNet} pada FPGA memakan waktu dalam skala milisekon. 
-Penelitian ini dilakukan oleh Dua et al. dengan menggunakan resource DSP secara penuh pada board FPGA 
-\cite{Dua2020SystolicCNN}. Hasil penelitian ini juga menunjukan bahwa \emph{convolver} bersifat \emph{compute centric} 
-sedangkan \emph{neural network} bersifat \emph{memory centric}. Hal ini membuat proses konvolusi memerlukan DSP yang lebih 
-banyak dibandingkan dengan \emph{neural network}. Sedangkan \emph{neural network} lebih banyak menggunakan BRAM yang 
-lebih banyak.
+    Pada sisi kamera, penelitian Solovyev et al. juga memperlihatkan 
+    penggunaan OV7670 sebagai sumber citra untuk sistem CNN berbasis 
+    FPGA \cite{Solovyev2019FixedPointCNN}. Konfigurasi kamera OV7670 
+    dilakukan melalui \emph{Serial Camera Control Bus} atau SCCB untuk 
+    mengatur format keluaran citra, resolusi, dan mode operasi sensor 
+    \cite{OmniVision2006OV7670}. Data piksel kemudian dikirim melalui 
+    \emph{pixel clock}, bus data paralel, serta sinyal sinkronisasi 
+    \emph{HREF} dan \emph{VSYNC}. Sinyal \emph{HREF} menandai data piksel 
+    valid pada satu baris, sedangkan \emph{VSYNC} menandai pergantian 
+    \emph{frame}. Sistem inferensi \emph{end-to-end} CNN berbasis kamera 
+    tidak hanya membutuhkan akselerator inferensi, tetapi juga akuisisi 
+    citra yang sinkron terhadap tampilan VGA.
 
-Intrgrasi FPGA untuk melakukan \emph{stream} dalam penelitian yang dilakukan oleh Navaneethan et al. \cite{Navaneethan2022OV7670VGA} 
-menggunakan \emph{VGA} dan kamera \emph{OV7670} pada board \emph{Spartan-6} dan \emph{ARTIX-7}. 
-Proses vidio \emph{stream} dengan menggunakan \emph{Xilinx Vivado} dan \emph{verilog} dengan menggunakan 530 \emph{slice registers}. 
-Selain itu pada penelitian Solovyev et al. juga melakukan kamera yang sama dalam melakukan prediksi inferensi pada board FPGA \emph{DEO Nano}
-\cite{Solovyev2019FixedPointCNN}. Kedua penelitian ini melakukan \emph{frame buffer} pada DDR board FPGA sebelum ditampilkan ke layar. 
-Alasan utama penggunaan DDR ini adalah ukuran \emph{frame} tidak bisa disimpan pada BRAM board FPGA terutama jika mengintegrasikan 
-CNN.
+    Penelitian Qiu et al. mengimplementasikan CNN pada FPGA 
+    \emph{Xilinx ZC706} dengan model \emph{VGG16-SVD} untuk klasifikasi 
+    citra ImageNet menggunakan representasi 16-bit \emph{fixed-point} 
+    \cite{Qiu2016GoingDeeperFPGA}. Hasil implementasi menunjukkan akurasi 
+    \emph{top-5} sebesar $86.66\%$, performa inferensi sebesar 4.45 FPS, 
+    \emph{throughput} sekitar 137 GOPS untuk keseluruhan jaringan, konsumsi 
+    daya sebesar 9.63 W. Penelitian ini menunjukkan bahwa kuantisasi 16-bit 
+    \emph{fixed-point} masih dapat mempertahankan akurasi yang layak pada 
+    model CNN berskala besar. Dari sisi arsitektur, operasi konvolusi 
+    menjadi bagian komputasi dominan sehingga pemetaan operasi 
+    \emph{multiply-accumulate} ke DSP, penggunaan \emph{buffer}, serta 
+    pengaturan akses memori menjadi faktor penting dalam meningkatkan 
+    throughput.
 
-Penggunaan AXI pada penelitian yang dilakukan oleh Aqueel et al. digunakan untuk 
-melakukan akses menulis dan membaca memory DDR3 lewat MIG \cite{Aqueel2011DDR3Controller}. 
-Penggunaan DDR pada penelitian ini dikarenakan \emph{resource} BRAM yang tidak cukup 
-jika digunakan untuk menyimpan \emph{frame RGB}. Hal ini lah yang mendukung penggunaan AXI.
-AXI yang digunakan adalah AXI yang mendukung transaksi \emph{burst} data. 
-AXI dan MIG berjalan pada sistem clock yang sama. Sistem dapat berjalan setelah MIG dapat 
-terkalibrasi. AXI bertindak sebagai \emph{master} terhadap MIG sebagai \emph{slave}. 
+    Penelitian Dua et al. melalui arsitektur \emph{Systolic-CNN} menunjukkan 
+    implementasi CNN berbasis \emph{OpenCL} pada FPGA dengan pendekatan 
+    yang lebih fleksibel terhadap banyak model \cite{Dua2020SystolicCNN}. 
+    Berbeda dari Solovyev et al. dan Qiu et al. yang menggunakan 
+    \emph{fixed-point}, penelitian ini menggunakan format 32-bit 
+    \emph{floating-point}. Model yang diuji meliputi \emph{AlexNet}, 
+    \emph{ResNet-50}, \emph{ResNet-152}, \emph{RetinaNet}, dan 
+    \emph{Light-weight RetinaNet}. Implementasi dilakukan pada board 
+    \emph{Intel Arria 10 GX1150} dan \emph{Intel Stratix 10 GX2800}. 
+    Pada \emph{Arria 10}, inferensi \emph{AlexNet} membutuhkan waktu 
+    sekitar 7 ms dan \emph{ResNet-50} sekitar 84 ms, sedangkan pada 
+    \emph{Stratix 10} latensinya menjadi sekitar 2 ms dan 33 ms. 
+    Paper ini tidak melaporkan konsumsi daya maupun efisiensi energi dalam 
+    GOPS/W, sehingga lebih tepat digunakan sebagai referensi arsitektur 
+    \emph{systolic array}, pemanfaatan DSP, dan fleksibilitas OpenCL.
 
-Konfigurasi kamera dilakukan melalui \emph{Serial Camera Control Bus} atau \emph{SCCB}, yaitu 
-antarmuka komunikasi yang digunakan untuk mengatur parameter internal kamera seperti format 
-keluaran citra, resolusi, pengaturan warna, serta mode operasi sensor \cite{OmniVision2006OV7670,Solovyev2019FixedPointCNN}. 
-Selain jalur konfigurasi, proses pembacaan data citra dari \emph{OV7670} dilakukan 
-melalui sinyal \emph{pixel clock}, data paralel, serta sinyal sinkronisasi seperti \emph{HREF} dan 
-\emph{VSYNC}. Sinyal \emph{HREF} digunakan untuk menandai bahwa data piksel pada satu baris sedang 
-valid, sedangkan sinyal \emph{VSYNC} digunakan sebagai penanda pergantian \emph{frame}.
+    Selain penelitian CNN, integrasi kamera dan tampilan juga ditunjukkan 
+    oleh Navaneethan et al. melalui implementasi \emph{video streaming} 
+    dari kamera OV7670 ke VGA pada board FPGA \emph{Spartan-6} dan 
+    \emph{Artix-7} menggunakan Verilog dan Xilinx Vivado 
+    \cite{Navaneethan2022OV7670VGA}. Penelitian ini tidak berfokus pada 
+    inferensi CNN, tetapi menunjukkan bahwa jalur akuisisi kamera, 
+    sinkronisasi piksel, dan tampilan VGA dapat diimplementasikan dengan 
+    penggunaan sumber daya yang relatif kecil, yaitu 530 
+    \emph{slice registers}. Hasil tersebut relevan sebagai pembanding 
+    bagian antarmuka kamera dan display, terutama karena sistem CNN 
+    berbasis kamera tetap membutuhkan jalur video yang stabil sebelum 
+    citra diproses oleh akselerator.
 
-Tampilan \emph{VGA} dibentuk melalui pengiriman data warna RGB yang disinkronkan dengan sinyal 
-\emph{horizontal sync} dan \emph{vertical sync}. Sinyal \emph{horizontal sync} berfungsi 
-mengatur perpindahan baris tampilan, sedangkan \emph{vertical sync} berfungsi mengatur 
-perpindahan antar-\emph{frame} pada layar \cite{Dodi2022FPGARealTimeCameraVGA}. Dalam implementasi FPGA, modul \emph{VGA controller} 
-perlu menghasilkan \emph{timing} yang sesuai dengan resolusi tampilan yang digunakan, kemudian 
-membaca data piksel dari \emph{frame buffer} untuk dikirimkan ke monitor.
-
+    Pada sistem yang memproses citra berukuran besar, penggunaan 
+    \emph{frame buffer} menjadi penting karena data kamera dan data 
+    tampilan bekerja pada aliran waktu yang berbeda. Untuk resolusi 
+    VGA $640 \times 480$ dengan format RGB, kapasitas BRAM pada FPGA 
+    umumnya tidak cukup untuk menyimpan satu atau dua \emph{frame} 
+    penuh \cite{Sun2021MicroBlazeVideoProcessing}. Oleh karena itu, pada 
+    rancangan ini DDR digunakan sebagai \emph{frame buffer}, sedangkan 
+    akses baca dan tulis dikendalikan melalui antarmuka AXI menuju MIG. 
+    AXI bertindak sebagai jalur transaksi antara modul \emph{master} dan 
+    MIG sebagai pengendali DDR, dan proses akses memori dilakukan setelah 
+    MIG selesai dikalibrasi \cite{Cosoroaba2013DDR3DataRates,Jacobo2021OV7670VGARepository}.
 
 \section{Landasan Teori}
 
@@ -170,10 +213,10 @@ membaca data piksel dari \emph{frame buffer} untuk dikirimkan ke monitor.
 
   Pada persamaan \ref{eq:mac-eq}, $x_i$ merupakan data masukan, $w_i$ merupakan bobot, 
   dan $b$ merupakan nilai bias. Operasi ini banyak digunakan pada komputasi 
-  \emph{Convolutional Neural Network} (CNN), terutama pada proses konvolusi 
-  dan \emph{fully connected layer}. Pada proses tersebut, setiap nilai 
-  keluaran diperoleh dari hasil perkalian antara data masukan dan bobot, 
-  kemudian seluruh hasil perkalian tersebut dijumlahkan.
+  (CNN), terutama pada proses konvolusi dan \emph{fully connected layer}. 
+  Pada proses tersebut, setiap nilai keluaran diperoleh dari hasil 
+  perkalian antara data masukan dan bobot, kemudian seluruh hasil perkalian 
+  tersebut dijumlahkan.
 
   Pada FPGA, operasi MAC dapat diimplementasikan menggunakan blok 
   logika umum atau menggunakan sumber daya khusus berupa DSP. Pada FPGA 
@@ -263,6 +306,13 @@ membaca data piksel dari \emph{frame buffer} untuk dikirimkan ke monitor.
   yang sama \cite{Cummings2002AsyncFIFO}. Dalam implementasi FPGA, FIFO dapat digunakan sebagai penyangga data
   agar proses pengiriman dan penerimaan data tetap stabil meskipun terdapat
   perbedaan waktu proses antarblok.
+
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=0.85\textwidth]{gambar/fifo-ilustration.png}
+      \caption{Ilustrasi FIFO}
+      \label{fig:fifo-ilustration}
+  \end{figure}
 
   Pada arsitektur konvolusi, FIFO dapat digunakan sebagai \emph{line buffer} untuk
   menyimpan satu atau beberapa baris data citra \cite{Solovyev2019FixedPointCNN}. Ketika piksel citra masuk secara
@@ -593,5 +643,124 @@ membaca data piksel dari \emph{frame buffer} untuk dikirimkan ke monitor.
   tidak sesuai, gambar bergeser, atau frame terlihat tidak stabil.
 
 \section{Analisis Perbandingan Metode}
-Berdasarkan hasil penelitian sebelumnya, pendekatan yang umum digunakan untuk 
-membentuk sistem implementasi CNN adalah dengan menggunakan \emph{time multiplex},
+
+\begin{table}[ht]
+    \centering
+    \caption{Perbandingan implementasi sistem pada penelitian terkait}
+    \label{tab:comparison_system}
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+            \textbf{Penelitian} & 
+            \textbf{CNN} & 
+            \textbf{Kamera} & 
+            \textbf{VGA} & 
+            \textbf{Board/Platform}
+            \\ \hline
+            Solovyev et al. \cite{Solovyev2019FixedPointCNN} & 
+            Ya & 
+            Ya & 
+            Ya & 
+            \emph{DE0-Nano} \& \emph{Intel Cyclone IV}
+            \\ \hline
+            Qiu et al. \cite{Qiu2016GoingDeeperFPGA} & 
+            Ya & 
+            -- & 
+            -- &
+            \emph{Xilinx ZC706}
+            \\ \hline
+            Dua et al. \cite{Dua2020SystolicCNN} & 
+            Ya & 
+            -- & 
+            -- &
+            \emph{Arria 10 GX1150} \& \emph{Stratix 10 GX2800}
+            \\ \hline
+            Navaneethan et al. \cite{Navaneethan2022OV7670VGA} & 
+            -- & 
+            Ya & 
+            Ya &
+            \emph{Spartan-6} \& \emph{Artix-7}
+            \\ \hline
+            Sun et al. \cite{Sun2021MicroBlazeVideoProcessing} & 
+            -- & 
+            Ya & 
+            Ya &
+            \emph{FPGA MicroBlaze based}
+            \\ \hline
+    \end{tabular}
+\end{table}
+
+Berdasarkan Tabel~\ref{tab:comparison_system}, penelitian terkait dapat dikelompokkan 
+menjadi dua arah utama. Penelitian seperti Solovyev et al. sudah menunjukkan 
+implementasi inferensi CNN secara \emph{end-to-end} pada FPGA, sedangkan Qiu et al. 
+dan Dua et al. lebih menekankan optimasi akselerator CNN dari sisi komputasi model, 
+arsitektur paralel, dan efisiensi operasi. Di sisi lain, Navaneethan et al. dan Sun et 
+al. lebih berfokus pada integrasi sistem citra, yaitu pengambilan data dari kamera 
+OV7670 dan penampilan citra melalui VGA, tetapi belum membahas akselerasi inferensi CNN. 
+Hal ini menunjukkan adanya celah penelitian pada integrasi antara sistem akuisisi 
+citra, tampilan video, dan akselerator CNN dalam satu platform FPGA. Oleh karena itu, 
+penelitian ini tidak hanya berfokus pada implementasi CNN berbasis \emph{fixed-point}, 
+tetapi juga pada bagaimana sistem tersebut dapat diintegrasikan dengan periferal 
+citra agar lebih mendekati kebutuhan aplikasi \emph{embedded vision} secara langsung.
+
+
+\begin{table}[ht]
+    \centering
+    \caption{Perbandingan performa penelitian terkait}
+    \label{tab:comparison_performance}
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{|l|c|c|c|c|c|c|}
+        \hline
+            \textbf{Penelitian} & 
+            \textbf{Latensi/FPS} & 
+            \textbf{Arsitektur Model} & 
+            \textbf{Daya (W)} & 
+            \textbf{GOPS} & 
+            \textbf{Loss} & 
+            \textbf{Akurasi} 
+            \\ \hline
+
+            \cite{Solovyev2019FixedPointCNN} & 
+            $>$150 FPS & 
+            CNN & 
+            -- & 
+            -- & 
+            -- & 
+            Tidak berubah setelah kuantisasi 
+            \\ \hline
+
+            \cite{Qiu2016GoingDeeperFPGA} & 
+            224.60 ms & 
+            \emph{VGG16-SVD} & 
+            9.63 & 
+            137 & 
+            -- & 
+            $86.66\%$ 
+            \\ \hline
+            
+            \cite{Dua2020SystolicCNN} & 
+            140ms & 
+            \emph{AlexNet} & 
+            2,1 & 
+            -- & 
+            -- & 
+            -- 
+            \\ \hline
+    \end{tabular}
+    }
+\end{table}
+
+Selain aspek integrasi sistem, perbandingan performa pada 
+Tabel~\ref{tab:comparison_performance} juga menunjukkan bahwa 
+konsumsi daya menjadi faktor penting dalam implementasi CNN. 
+Pada penelitian Qiu et al., implementasi VGG16-SVD pada FPGA hanya 
+membutuhkan daya sebesar 9,63 W, sedangkan platform CPU dan GPU yang 
+digunakan sebagai pembanding memiliki konsumsi daya yang jauh lebih tinggi, 
+yaitu 135 W untuk CPU dan 250 W untuk GPU \cite{Qiu2016GoingDeeperFPGA}. 
+Meskipun GPU mampu memberikan performa komputasi yang lebih besar, konsumsi dayanya 
+mencapai sekitar 26 kali lebih tinggi dibandingkan FPGA. Kondisi ini memperlihatkan 
+bahwa CPU dan GPU tidak selalu menjadi pilihan paling efisien untuk sistem 
+\emph{real-time} dan \emph{embedded}, terutama ketika batasan daya dan latensi 
+menjadi pertimbangan utama. Dengan demikian, FPGA menjadi alternatif yang relevan 
+karena dapat menyediakan jalur komputasi khusus melalui paralelisme, 
+\emph{pipeline}, dan representasi \emph{fixed-point} sehingga proses inferensi dapat 
+dilakukan dengan konsumsi daya yang lebih rendah.
