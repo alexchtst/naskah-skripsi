@@ -4,79 +4,124 @@
 	Alat dan bahan yang digunakan pada penelitian ini terbagi atas perangkat keras dan perangkat lunak yang akan dijelaskan seperti berikut.
 
 	\subsection{Perangkat Keras}
-	Perangkat keras terdiri dari sebuah single board computer (SBC) yang digunakan
-	sebagai host IoT hub serta sejumlah sensor dan aktuator untuk simulasi pengambilan
-	data. Detail mengenai perangkat keras yang digunakan terdapat pada daftar berikut.
+	Perangkat keras terdiri dari sebuah FPGA board yang digunakan sebagai 
+	media inferensi model CNN serta sejumlah pheripheral meida untuk 
+	melakukan \emph{streaming meida} untuk pengambilan data. Detail mengenai 
+	perangkat keras yang digunakan terdapat pada daftar berikut.
 
 		\vspace{-0.5cm}
 
 		\begin{enumerate}[a.]
 		\begin{singlespace}
 		\itemsep0em
-			\item Kit pancar-rima IQRF TR-53B (3 unit),
-			\item Kit pengunduh program CK-USB-04 (1 unit),
-			\item Kit pengembangan DK-EVAL-03 (2 unit),
-			\item Kit pengembangan CK-EVAL-04 (1 unit),
-			\item \emph{XBee 802.15.4 Radios (Series 1)} (3 unit),
-			\item \emph{XBee Explorer USB Board} (1 unit),
-			\item \emph{2 channel Relay Shield For Arduino (With XBee/BTBee interface)} (2 unit),
-			\item Arduino Uno (2 unit),
-			\item TP-LINK MR3020 (1 unit),
-			\item Kabel USB ke Serial Prolific (1 unit).
+			\item FPGA ARTY 7 100T,
+			\item OV7670,
+			\item \emph{VGA Pmod Digilent},
+			\item \emph{USB},
+			\item 14 Jumper \emph{Male-Female},
 		\end{singlespace}
 		\end{enumerate}
 
 	\subsection{Perangkat Lunak}
-	Perangkat lunak yang digunakan selama proses pengembangan mencakup ling-
-	kungan kerja dan lingkungan uji. Detail mengenai perangkat lunak yang digunakan ter-
-	dapat pada daftar berikut.
+	Perangkat lunak yang digunakan selama proses pengembangan mencakup 
+	lingkungan kerja dan lingkungan uji. Detail mengenai perangkat 
+	lunak yang digunakan terdapat pada daftar berikut.
 
 		\vspace{-0.5cm}
 
 		\begin{enumerate}[a.]
 		\begin{singlespace}
 		\itemsep0em
-			\item Arduino for Mac OS X,
-			\item CoolTerm,
-			\item Driver FTDI for Mac OS X,
-			\item PHP, MySQL, dan uHTTPd,
-			\item Python dan pustaka PySerial,
-			\item IQRF IDE v 2.08 for TR-53B,
-			\item SSHFS,
-			\item Sublime Text 3.
+			\item Software VIVADO,
+			\item Linux Operating System,
+			\item Python,
+			\item Kagle,
+			\item Verilog Icairus,
+			\item Visual Studio Code.
 		\end{singlespace}
 		\end{enumerate}
 
+\section{Metode Pengujian}
+	\subsection{Pengujian Akurasi Model di Python}
+	....
+
+	\subsection{Pengujian Penggunaan Kapasitas FPGA}
+	....
+
+	\subsection{Pengujian \emph{Sanitasi} Perangkat Keras Kamera}
+	....
+
+	\subsection{Pengujian \emph{Sanitasi} Perangkat Keras VGA}
+	....
+
+	\subsection{Pengujian DDR}
+	....
+
 \section{Metode Integrasi}
-Consul graeco signiferumque qui id, usu eu summo dicunt voluptatum, nec ne simul perpetua posidonium. Eos ea saepe prodesset signiferumque. No dolore possit est. Mei no justo intellegebat definitiones, vis ferri lorem eripuit ad. Solum tritani scribentur duo ei, his an adipisci intellegat.
+	\subsection{Metode Integrasi Model CNN ke FPGA}
+	....
+
+	\subsection{Metode Integrasi VGA dan DDR}
+	....
+
+	\subsection{Metode Integrasi OV7670, VGA dan DDR}
+	....
+
+	\subsection{Metode Integrasi CNN, OV7670, VGA dan DDR}
+	....
+
+\section{Metode Evaluasi}
+	\subsection{Metode Evaluasi Model Hasil Training}
+	....
+
+	\subsection{Metode Evaluasi Perbedaan Bit Hasil \emph{Running Verilog Icairus}}
+	....
+
+	\subsection{Metode Evaluasi Hasil Inferensi Model di FPGA}
+	....
 
 \section{Tahapan Pelaksanaan}
-Consul graeco signiferumque qui id, usu eu summo dicunt voluptatum, nec ne simul perpetua posidonium. Eos ea saepe prodesset signiferumque. No dolore possit est. Mei no justo intellegebat definitiones, vis ferri lorem eripuit ad. Solum tritani scribentur duo ei, his an adipisci intellegat.
+....
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.45\textwidth]{gambar/diagram-alir-penelitian.png}
+	\caption{Diagram Alir Penelitian}
+	\label{fig:diagram-alir-penelitian}
+\end{figure}
+
+....
 
 \section{Jadwal Kegiatan}
-	Quo no atqui omnesque intellegat, ne nominavi argumentum quo. Eum ei purto oporteat dissentiet, soleat utamur an sit. Et assum dicam interpretaris quo. Cetero alterum ea vel, no possit alterum utroque nec. His fuisset quaestio ad. Has eu tritani incorrupte consequuntur, esse aliquip nec ne \ref{jadwal}.
+Penelitian dilaksanakan selama enam bulan, yaitu dari 
+Januari 2026 hingga Juni 2026 sebagaimana ditunjukkan pada 
+Tabel \ref{jadwal-penelitian}. Tahap studi literatur 
+dilakukan pada bulan pertama hingga bulan ketiga sebagai 
+dasar dalam penyusunan dan pengembangan penelitian. 
+Desain sistem dilaksanakan mulai bulan kedua hingga bulan 
+keenam dengan mengacu pada hasil studi literatur serta 
+penelitian terdahulu yang relevan. Pembuatan prototipe 
+dilakukan secara paralel dengan proses desain sistem pada 
+bulan keempat hingga bulan keenam dengan mempertimbangkan 
+kapasitas perangkat keras dan waktu penelitian yang tersedia. 
+Uji coba dan perbaikan sistem juga dilaksanakan pada periode 
+yang sama untuk mengevaluasi kinerja prototipe dan melakukan 
+penyempurnaan secara bertahap. Adapun penulisan skripsi 
+dilakukan pada bulan keenam sebagai tahap akhir penelitian.
 
-	% Please remember to add \use{multirow} to your document preamble in order to suppor multirow cells
-		\begin{table}[H]
-		\centering
-		\caption{Jadwal Penelitian.}
-		\label{jadwal}
-		\begin{tabular}{|c|l|l|l|l|l|l|l|}
-		\hline
-		\multirow{2}{*}{No} & \multirow{2}{*}{Keterangan} & \multicolumn{6}{c|}{Bulan}                                                                                                                          \\ \cline{3-8} 
-		                    &                             & 1 & 2 & 3 & 4 & 5 & 6 \\ \hline
-		1                   & Studi literatur                                  &\cellcolor{gray} &\cellcolor{gray}&                        &                        &                        &                         \\ \hline
-		2                   & Desain                                           &                        &\cellcolor{gray}&\cellcolor{gray}&                        &                        &                         \\ \hline
-		3                   & Pembelian bahan                                  &                        &                        &\cellcolor{gray}&                        &                        &                         \\ \hline
-		4                   & Pembuatan prototipe                              &                        &                        &\cellcolor{gray}&\cellcolor{gray}&\cellcolor{gray}&                         \\ \hline
-		5                   & Uji coba dan perbaikan                           &                        &                        &                        &\cellcolor{gray}&\cellcolor{gray}&                         \\ \hline
-		6                   & Penulisan skripsi                                &                        &                        &                        &                        &                        &\cellcolor{gray}\\ \hline
-		\end{tabular}
-		\end{table}
-	
-% Baris ini digunakan untuk membantu dalam melakukan sitasi
-% Karena diapit dengan comment, maka baris ini akan diabaikan
-% oleh compiler LaTeX.
-\begin{comment}
-\bibliography{daftar-pustaka}
-\end{comment}
+
+\begin{table}[H]
+	\centering
+	\caption{Jadwal Penelitian.}
+	\label{jadwal-penelitian}
+	\begin{tabular}{|c|l|l|l|l|l|l|l|}
+	\hline
+	\multirow{2}{*}{No} & \multirow{2}{*}{Keterangan} & \multicolumn{6}{c|}{Bulan} \\ \cline{3-8}
+						&                             & 1 & 2 & 3 & 4 & 5 & 6 \\ \hline
+	1 & Studi literatur        & \cellcolor{gray} & \cellcolor{gray} & \cellcolor{gray} &                        &                        &                        \\ \hline
+	2 & Desain                 &                    & \cellcolor{gray} & \cellcolor{gray} & \cellcolor{gray} & \cellcolor{gray} & \\ \hline
+	3 & Pembuatan prototipe    &                    &                    &                    & \cellcolor{gray} & \cellcolor{gray} & \cellcolor{gray} \\ \hline
+	4 & Uji coba dan perbaikan &                    &                    &                    & \cellcolor{gray} & \cellcolor{gray} & \cellcolor{gray} \\ \hline
+	5 & Penulisan skripsi      &                    &                    &                    &                    &                    & \cellcolor{gray} \\ \hline
+	\end{tabular}
+\end{table}
