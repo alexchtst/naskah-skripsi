@@ -764,6 +764,9 @@ INPUT bab4.aux
 INPUT ./bab5.aux
 INPUT bab5.aux
 INPUT bab5.aux
+INPUT ./lampiran.aux
+INPUT lampiran.aux
+INPUT lampiran.aux
 OUTPUT template-skripsi.aux
 INPUT /usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 INPUT /usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
@@ -1095,6 +1098,16 @@ INPUT ./template-skripsi.bbl
 INPUT template-skripsi.bbl
 INPUT ./template-skripsi.bbl
 INPUT template-skripsi.bbl
+INPUT ./lampiran.tex
+INPUT ./lampiran.tex
+INPUT ./lampiran.tex
+OUTPUT lampiran.aux
+INPUT ./lampiran.tex
+INPUT ./lampiran.tex
+INPUT ./lampiran.tex
+INPUT lampiran.tex
+INPUT ./lampiran.tex
+INPUT lampiran.tex
 INPUT template-skripsi.aux
 INPUT ./bab1.aux
 INPUT bab1.aux
@@ -1111,6 +1124,9 @@ INPUT bab4.aux
 INPUT ./bab5.aux
 INPUT bab5.aux
 INPUT bab5.aux
+INPUT ./lampiran.aux
+INPUT lampiran.aux
+INPUT lampiran.aux
 INPUT ./template-skripsi.out
 INPUT ./template-skripsi.out
 INPUT /usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc
