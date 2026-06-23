@@ -1,34 +1,28 @@
 \chapter{KESIMPULAN DAN SARAN}
 
 \section{Kesimpulan}
-	Berdasarkan hasil analisis dan pengujian fungsional aplikasi ini, didapat kesimpulan sebagai berikut:
+Berdasarkan hasil perancangan, implementasi, dan pengujian yang telah dilakukan, dapat disimpulkan beberapa hal sebagai berikut.
 
-	\begin{enumerate}
-		\item Lorem ipsum is a pseudo-Latin text used in web design, typography, layout, and printing in place of English to emphasise design elements over content. 
-		
-		\item It's also called placeholder (or filler) text. It's a convenient tool for mock-ups. 
-		
-		\item It helps to outline the visual elements of a document or presentation, eg typography, font, or layout. Lorem ipsum is mostly a part of a Latin text by the classical author and philospher Cicero.
+\begin{enumerate}
+    \item Model CNN berhasil diimplementasikan pada board FPGA menggunakan representasi fixed-point 16-bit. Proses kuantisasi dilakukan terhadap parameter bobot dan bias model sehingga dapat digunakan pada modul Verilog tanpa menggunakan operasi floating-point.
 
-		\item Its words and letters have been changed by addition or removal, so to deliberately render its content nonsensical; it's not genuine, correct, or comprehensible Latin anymore. 
-	\end{enumerate}
+    \item Hasil implementasi CNN accelerator menunjukkan bahwa sistem mampu menghasilkan keluaran inferensi dalam 3802 siklus clock. Pada frekuensi kerja 100 MHz, nilai tersebut setara dengan latensi sebesar 38,02 $\mu$s.
 
+    \item Hasil penggunaan resource menunjukkan bahwa CNN accelerator menggunakan sebagian besar DSP pada FPGA. Pada implementasi sistem penuh, penggunaan DSP mencapai 235 DSP48E1 dari total 240 DSP yang tersedia, sehingga DSP menjadi resource utama yang membatasi pengembangan model.
+
+    \item Sistem streaming citra berbasis OV7670, DDR3 SDRAM, dan VGA berhasil dirancang dan diintegrasikan sebagai bagian dari sistem pendukung akuisisi dan tampilan citra pada FPGA.
+
+    \item Hasil implementasi sistem penuh menunjukkan bahwa desain dapat melalui proses routing tanpa unrouted net dan memenuhi timing dengan nilai WNS positif. Estimasi daya total on-chip yang diperoleh adalah sebesar 1,099 W.
+\end{enumerate}
 
 \section{Saran}
-	\begin{enumerate}
-		\item Lorem ipsum is a pseudo-Latin text used in web design, typography, layout, and printing in place of English to emphasise design elements over content. 
-		
-		\item It's also called placeholder (or filler) text. It's a convenient tool for mock-ups. 
-		
-		\item It helps to outline the visual elements of a document or presentation, eg typography, font, or layout. Lorem ipsum is mostly a part of a Latin text by the classical author and philospher Cicero.
+Berdasarkan penelitian yang telah dilakukan, terdapat beberapa saran untuk pengembangan selanjutnya sebagai berikut.
 
-		\item Its words and letters have been changed by addition or removal, so to deliberately render its content nonsensical; it's not genuine, correct, or comprehensible Latin anymore. 
-	\end{enumerate}
+\begin{enumerate}
+    \item Optimasi penggunaan DSP perlu dilakukan karena implementasi CNN accelerator menggunakan resource DSP dalam jumlah sangat besar. Optimasi dapat dilakukan melalui penggunaan time multiplexing, pengurangan jumlah channel, atau perancangan ulang arsitektur CNN yang lebih ringan.
 
-	
-% Baris ini digunakan untuk membantu dalam melakukan sitasi
-% Karena diapit dengan comment, maka baris ini akan diabaikan
-% oleh compiler LaTeX.
-\begin{comment}
-\bibliography{daftar-pustaka}
-\end{comment}
+    \item Pengujian sistem dapat dikembangkan menggunakan data citra yang diperoleh langsung dari kamera OV7670 agar sistem klasifikasi lebih merepresentasikan kondisi penggunaan secara real-time.
+
+    \item Pengukuran daya dapat dilakukan menggunakan alat ukur eksternal agar hasil konsumsi daya tidak hanya bergantung pada estimasi dari Vivado.
+
+\end{enumerate}

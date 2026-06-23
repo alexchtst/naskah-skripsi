@@ -1,49 +1,82 @@
 \chapter{HASIL DAN PEMBAHASAN}
-\section{Analisis Kapasitas Board FPGA}
-....
 
-\section{Hasil Pelatihan Model CNN}
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.95\textwidth]{gambar/data_train_distribution.png}
-	\caption{Distribusi \emph{Training Dataset} yang digunakan}
-	\label{fig:model-dataset}
-\end{figure}
+\section{Hasil Implementasi Model CNN}
+    \subsection{Dataset yang Digunakan}
+		\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.95\textwidth]{gambar/data_train_distribution.png}
+		\caption{Distribusi \emph{Training Dataset} yang digunakan}
+		\label{fig:model-dataset}
+	\end{figure}
 
-	\subsection{Arsitektur Target Model CNN}
-	....
+    \subsection{Arsitektur Target Model CNN}
 	\begin{figure}[H]
-      \centering
-      \includegraphics[width=0.95\textwidth]{gambar/cnn architecture.png}
-      \caption{Arsitektur Model CNN}
-      \label{fig:model-architecture}
+		\centering
+		\includegraphics[width=0.95\textwidth]{gambar/cnn architecture.png}
+		\caption{Arsitektur Model CNN}
+		\label{fig:model-architecture}
   	\end{figure}
-
-	\subsection{\emph{Loss} dan \emph{Akurasi} Hasil Pelatihan}
-	....
+	
+    \subsection{Hasil Pelatihan Model CNN}
 	\begin{figure}[H]
       \centering
       \includegraphics[width=0.95\textwidth]{gambar/best_plot_loss.png}
       \caption{\emph{Loss training} model}
       \label{fig:training-loss}
   	\end{figure}
+	\begin{figure}[H]
+		\centering
+      	\includegraphics[width=0.95\textwidth]{gambar/best_plot_accuracy.png}
+      	\caption{\emph{Accuracy training} model}
+      	\label{fig:training-acc}
+  	\end{figure}
+	\begin{figure}[H]
+      	\centering
+      	\includegraphics[width=0.95\textwidth]{gambar/confusion_matrix_train_model.png}
+      	\caption{\emph{Confusion Matrix Training} model}
+      	\label{fig:training-confussion-matrix}
+  	\end{figure}
+	\begin{table}[htbp]
+	\centering
+		\caption{Ukuran Parameter Pada Model Python}
+		\vspace{2mm}
+		\small
+		\begin{tabular}{llccc}
+			\toprule
+			\textbf{Parameter Name} & \textbf{Activation} & \textbf{Params} & \textbf{Parameter Size} & \\
+			\midrule
+			\textbf{conv2d} 		& relu  		& 80 			& 992 B \\
+			\textbf{pool} 			& -         	& - 			& - \\
+			\textbf{conv2d} 		& relu 			& 1168 			& 9.47 KB \\
+			\textbf{pool} 			& -       		& - 			& - \\
+			\textbf{conv2d} 		& relu			& 4640 			& 36.59 KB \\
+			\textbf{pool} 			& -        		& - 			& - \\
+			\textbf{flatten}   		& -      		& -				& - \\
+			\textbf{neural}   		& relu        	& 528 			& 4.47 KB \\
+			\textbf{neural}   		& relu      	& 170 			& 1.67 KB \\
+			\textbf{softmax}   		& -         	& - 			& - \\
+			\bottomrule
+			\textbf{Total}			&          		& 6586 			& 53,192 KB \\
+			\bottomrule
+			   			
+		\end{tabular}
+	\end{table}
+    
+	\subsection{Hasil Evaluasi Model CNN di Python}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.95\textwidth]{gambar/data_test_distribution.png}
+		\caption{Distribusi \emph{Test Dataset} yang digunakan}
+		\label{fig:test-model-dataset}
+	\end{figure}
 
 	\begin{figure}[H]
       \centering
-      \includegraphics[width=0.95\textwidth]{gambar/best_plot_accuracy.png}
-      \caption{\emph{Accuracy training} model}
-      \label{fig:training-acc}
+      \includegraphics[width=0.95\textwidth]{gambar/confusion_matrix_test_model.png}
+      \caption{\emph{Confusion Matrix testing} model}
+      \label{fig:testing-confussion-matrix}
   	\end{figure}
 
-	\begin{figure}[H]
-      \centering
-      \includegraphics[width=0.95\textwidth]{gambar/confusion_matrix_train_model.png}
-      \caption{\emph{Confusion Matrix Training} model}
-      \label{fig:training-confussion-matrix}
-  	\end{figure}
-
-	\subsection{Kuantitasi Parameter Model CNN}
-	....
 	\begin{table}[htbp]
 	\centering
 		\caption{Parameter Model pada Python}
@@ -66,7 +99,8 @@
 			\bottomrule
 		\end{tabular}
 	\end{table}
-
+    
+	\subsection{Kuantisasi Parameter Model CNN}
 	\begin{table}[htbp]
 	\centering
 		\caption{Hasil Kuantisasi Parameter}
@@ -90,16 +124,19 @@
 		\end{tabular}
 	\end{table}
 
-\section{Hasil Implementasi CNN pada FPGA}
+\section{Hasil Implementasi CNN Accelerator pada FPGA}
+    \subsection{Arsitektur CNN Accelerator pada FPGA}
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=0.95\textwidth]{gambar/cnn-accelerator-design.png}
 		\caption{Desain CNN Accelerator pada FPGA}
 		\label{fig:cnn-accelerator-design}
 	\end{figure}
+
+    \subsection{Hasil Penggunaan Resource CNN Accelerator}
 	\begin{table}[H]
 		\centering
-		\caption{Hasil \emph{Implement Running}}
+		\caption{Hasil \emph{CNN Implement Running}}
 		\label{implement-run-cnn}
 		\begin{tabular}{|l|l|l|}
 			\hline
@@ -112,76 +149,104 @@
 			\hline
 		\end{tabular}
 	\end{table}
-	\subsection{Hasil Latensi dan Throughput}
-	....
 
-\section{Hasil Uji Sanitasi Hardware}
-	\subsection{Hasil Uji OV7670 pada \emph{Debug ILA}}
-	....
+    \subsection{Hasil Timing CNN Accelerator}
 
-	\subsection{Hasil Uji VGA PMOD Digilent}
-	....
+	\begin{table}[htbp]
+	\centering
+		\caption{Hasil Routing CNN Accelerator Design}
+		\vspace{2mm}
+		\small
+		\begin{tabular}{llccc}
+			\toprule
+			\textbf{Conflict Nets} 	& 
+			\textbf{Unrouted Nets} & 
+			\textbf{Partially Routed Nets} & 
+			\textbf{Fully Routed Nets} \\
+			\midrule
+			0 & 
+			0 & 
+			0 & 
+			44973 \\
+			\bottomrule
+		\end{tabular}
+	\end{table}
+
+	\begin{table}[htbp]
+	\centering
+		\caption{Hasil \emph{CNN Accelerator Delayed Design}}
+		\vspace{2mm}
+		\small
+		\begin{tabular}{llccc}
+			\toprule
+			\textbf{WNS} 	& 
+			\textbf{TNS} & 
+			\textbf{WHS} & 
+			\textbf{WBSS} & 
+			\textbf{TPWS} \\
+			\midrule
+			0.121 & 
+			0.00 & 
+			0.010 & 
+			0.00 & 
+			3.75 \\
+			\bottomrule
+		\end{tabular}
+	\end{table}
 	
-\begin{lstlisting}[language=Verilog, title={Kode Sanitasi VGA Verilog}, label={code:verilog-sanitize}]
-case (h_count[9:7])
-// White
-3'd0: begin vga_r <= 4'hF;vga_g <= 4'hF;vga_b <= 4'hF;end
-// Yellow
-3'd1: begin vga_r <= 4'hF;vga_g <= 4'hF;vga_b <= 4'h0; end
-// Cyan
-3'd2: begin vga_r <= 4'h0;vga_g <= 4'hF;vga_b <= 4'hF; end
-// Green
-3'd3: begin vga_r <= 4'h0;vga_g <= 4'hF;vga_b <= 4'h0; end
-// Magenta
-3'd4: begin vga_r <= 4'hF;vga_g <= 4'h0;vga_b <= 4'hF; end
-// Red
-3'd5: begin vga_r <= 4'hF;vga_g <= 4'h0;vga_b <= 4'h0; end
-// Blue
-3'd6: begin vga_r <= 4'h0;vga_g <= 4'h0;vga_b <= 4'hF; end
-// Black
-default: begin vga_r  <= 4'h0;vga_g <= 4'h0;vga_b <= 4'h0; end
-endcase
-\end{lstlisting}
-
-	\subsection{Hasil Uji Akses DDR3 SDRAM}
-	....
-
-\section{Hasil Integrasi Hardware}
-	\subsection{Hasil Integrasi OV7670, VGA, dan DDR}
+    \subsection{Hasil Latensi dan Throughput CNN Accelerator}
 	\begin{table}[H]
-      \centering
-      \caption{Hasil \emph{Implement Running}}
-      \label{implement-run-hardware}
-      \begin{tabular}{|l|l|l|}
-		  \hline
-          \textbf{Komponen} & \textbf{Resource Terpakai} & \textbf{Persentase} $\%$ \\
-          \hline
-          LUT & 6.969 & 11 \\
-          Flip-Flop & 6.357 & 5.01 \\
-          Block RAM & 0.5 & 0.37 \\
-          DSP Slice & 0 & 0.0 \\
-          \hline
-      \end{tabular}
-  \end{table}
-	....
+		\centering
+		\caption{Hasil Latensi CNN Accelerator}
+		\label{tab:latency-cnn}
+		\begin{tabular}{|l|c|c|}
+			\hline
+			\textbf{Tahap} & \textbf{Jumlah Siklus} & \textbf{Latensi pada 100 MHz} \\ \hline
+			Block 1 Output & 98 & 0,98 $\mu$s \\ \hline
+			Block 2 Output & 545 & 5,45 $\mu$s \\ \hline
+			Frame Done & 788 & 7,88 $\mu$s \\ \hline
+			Block 3 Output & 2457 & 24,57 $\mu$s \\ \hline
+			Dense Output & 3802 & 38,02 $\mu$s \\ \hline
+		\end{tabular}
+	\end{table}
 
-	\subsection{Hasil Integrasi CNN Accelerator dengan OV7670, VGA, dan DDR}
+	\begin{equation}
+		Throughput = \frac{1}{38,02 \times 10^{-6}} = 26302 \text{ inferensi/s}
+	\end{equation}
+
+
+\section{Hasil Pengujian Modul Perangkat Keras}
+    \subsection{Hasil Uji Sanitasi OV7670}
+    \subsection{Hasil Uji Sanitasi VGA Pmod}
+    \subsection{Hasil Uji Akses DDR3 SDRAM}
+
+\section{Hasil Integrasi Sistem}
+    \subsection{Hasil Integrasi OV7670, DDR, dan VGA}
+	\begin{table}[H]
+		\centering
+		\caption{Hasil \emph{Streaming Flow Implement Running}}
+		\label{implement-run-hardware}
+		\begin{tabular}{|l|l|l|}
+			\hline
+          	\textbf{Komponen} & \textbf{Resource Terpakai} & \textbf{Persentase} $\%$ \\
+          	\hline
+          	LUT & 6.969 & 11 \\
+          	Flip-Flop & 6.357 & 5.01 \\
+          	Block RAM & 0.5 & 0.37 \\
+          	DSP Slice & 0 & 0.0 \\
+          	\hline
+    	\end{tabular}
+	\end{table}
+
+    \subsection{Hasil Integrasi CNN Accelerator dengan OV7670, DDR, dan VGA}
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=0.95\textwidth]{gambar/full-sistem.png}
 		\caption{Desian Akhir Integrasi}
 		\label{fig:full-system-design}
 	\end{figure}
-
-	....
-
-  	\begin{figure}[H]
-		\centering
-		\includegraphics[width=0.95\textwidth]{gambar/power-analysis.png}
-		\caption{Hasil Penggunaan Daya}
-		\label{fig:full-system-design-power}
-	\end{figure}
-
+	
+    \subsection{Hasil Penggunaan Resource Sistem Terintegrasi}
 	\begin{table}[H]
 		\centering
 		\caption{Detail Hasil \emph{Implement Running}}
@@ -198,20 +263,7 @@ endcase
       	\end{tabular}
   	\end{table}
 
-	\begin{table}[htbp]
-	\centering
-		\caption{Penggunaan Daya dan Temperature}
-		\vspace{2mm}
-		\small
-		\begin{tabular}{llccc}
-			\toprule
-			\textbf{Total On Chip} 	& \textbf{Junction Temperature} & \textbf{Thermal Margin} 	& \textbf{Effective JA} \\
-			\midrule
-			\textbf{1.099 W} 		& \textbf{30.0 C}				& 55.0 C (11.9 W) 			& 4.6 C/W 				\\
-			\bottomrule
-		\end{tabular}
-	\end{table}
-
+    \subsection{Hasil Timing Sistem Terintegrasi}
 	\begin{table}[htbp]
 	\centering
 		\caption{Hasil Routing Design}
@@ -227,7 +279,7 @@ endcase
 			0 & 
 			0 & 
 			0 & 
-			63.141 \\
+			63141 \\
 			\bottomrule
 		\end{tabular}
 	\end{table}
@@ -254,59 +306,66 @@ endcase
 		\end{tabular}
 	\end{table}
 
-\section{Hasil Evaluasi}
-	\subsection{Hasil Evaluasi Model CNN}
-	....
+    \subsection{Hasil Estimasi Daya Sistem Terintegrasi}
+
+	\begin{table}[htbp]
+	\centering
+		\caption{Penggunaan Daya dan Temperature}
+		\vspace{2mm}
+		\small
+		\begin{tabular}{llccc}
+			\toprule
+			\textbf{Total On Chip} 	& \textbf{Junction Temperature} & \textbf{Thermal Margin} 	& \textbf{Effective JA} \\
+			\midrule
+			\textbf{1.099 W} 		& \textbf{30.0 C}				& 55.0 C (11.9 W) 			& 4.6 C/W 				\\
+			\bottomrule
+		\end{tabular}
+	\end{table}
+
 	\begin{figure}[H]
 		\centering
-		\includegraphics[width=0.95\textwidth]{gambar/data_test_distribution.png}
-		\caption{Distribusi \emph{Test Dataset} yang digunakan}
-		\label{fig:test-model-dataset}
+		\includegraphics[width=0.95\textwidth]{gambar/power-analysis.png}
+		\caption{Detail Hasil Penggunaan Daya}
+		\label{fig:full-system-design-power}
 	\end{figure}
 
+\section{Hasil Evaluasi dan Pembahasan}
+    \subsection{Evaluasi Perbedaan Hasil Python dan Verilog}
 	\begin{figure}[H]
-      \centering
-      \includegraphics[width=0.95\textwidth]{gambar/confusion_matrix_test_model.png}
-      \caption{\emph{Confusion Matrix testing} model}
-      \label{fig:testing-confussion-matrix}
-  	\end{figure}
-
-	\subsection{Hasil Evaluasi Perbedaan Bit Model CNN}
-	....
-	\begin{figure}[H]
-      \centering
-      \includegraphics[width=0.95\textwidth]{gambar/train_results_all_labels_block1.png}
-      \caption{Perbandingan \emph{Bit} dan \emph{Float value} pada \emph{Conv 1} dan \emph{Pool 1}}
-      \label{fig:block1-bit-different}
+		\centering
+      	\includegraphics[width=0.95\textwidth]{gambar/train_results_all_labels_block1.png}
+      	\caption{Perbandingan \emph{Bit} dan \emph{Float value} pada \emph{Conv 1} dan \emph{Pool 1}}
+      	\label{fig:block1-bit-different}
   	\end{figure}
 
 	\begin{figure}[H]
-      \centering
-      \includegraphics[width=0.95\textwidth]{gambar/train_results_all_labels_block2.png}
-      \caption{Perbandingan \emph{Bit} dan \emph{Float value} pada \emph{Conv 2} dan \emph{Pool 2}}
-      \label{fig:block2-bit-different}
+      	\centering
+      	\includegraphics[width=0.95\textwidth]{gambar/train_results_all_labels_block2.png}
+      	\caption{Perbandingan \emph{Bit} dan \emph{Float value} pada \emph{Conv 2} dan \emph{Pool 2}}
+      	\label{fig:block2-bit-different}
   	\end{figure}
 
 	\begin{figure}[H]
-      \centering
-      \includegraphics[width=0.95\textwidth]{gambar/train_results_all_labels_block3.png}
-      \caption{Perbandingan \emph{Bit} dan \emph{Float value} pada \emph{Conv 3} dan \emph{Pool 3}}
-      \label{fig:block3-bit-different}
+      	\centering
+      	\includegraphics[width=0.95\textwidth]{gambar/train_results_all_labels_block3.png}
+      	\caption{Perbandingan \emph{Bit} dan \emph{Float value} pada \emph{Conv 3} dan \emph{Pool 3}}
+      	\label{fig:block3-bit-different}
   	\end{figure}
 
 	\begin{figure}[H]
-      \centering
-      \includegraphics[width=0.95\textwidth]{gambar/train_results_all_labels_blockdense.png}
-      \caption{Perbandingan \emph{Bit} dan \emph{Float value} pada \emph{Dense 1} dan \emph{Dense 2}}
-      \label{fig:blockdense-bit-different}
+      	\centering
+      	\includegraphics[width=0.95\textwidth]{gambar/train_results_all_labels_blockdense.png}
+      	\caption{Perbandingan \emph{Bit} dan \emph{Float value} pada \emph{Dense 1} dan \emph{Dense 2}}
+      	\label{fig:blockdense-bit-different}
   	\end{figure}
 
 	\begin{figure}[H]
-      \centering
-      \includegraphics[width=0.95\textwidth]{gambar/train_accuracy-argmax.png}
-      \caption{Perbedaan Akurasi}
-      \label{fig:argmax-bit-accuracy}
+      	\centering
+      	\includegraphics[width=0.95\textwidth]{gambar/train_accuracy-argmax.png}
+      	\caption{Perbedaan Akurasi}
+      	\label{fig:argmax-bit-accuracy}
   	\end{figure}
 
-	\subsection{Hasil Evaluasi Inferensi Model di FPGA}
-	....
+    \subsection{Evaluasi Hasil Inferensi Model pada FPGA}
+    \subsection{Pembahasan Resource, Latensi, dan Daya}
+	\subsection{Pembahasan Ketercapaian Sistem terhadap Tujuan Penelitian}

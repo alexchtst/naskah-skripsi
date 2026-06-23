@@ -333,6 +333,194 @@
   CNN membutuhkan akses data yang intensif, sehingga efisiensi penyimpanan
   sementara dan penggunaan ulang data menjadi bagian penting dalam rancangan
   akselerator CNN berbasis FPGA \cite{Zhang2015OptimizingCNNFPGA}.
+    
+```latex
+
+  \subsection{Konvolusi}
+  Konvolusi merupakan operasi utama pada \emph{Convolutional Neural Network} (CNN) yang digunakan untuk mengekstraksi fitur dari citra masukan. Pada operasi ini, sebuah \emph{kernel} atau \emph{filter} digeser pada area lokal citra untuk menghasilkan nilai fitur baru. Setiap nilai keluaran diperoleh dari hasil perkalian antara elemen citra dan elemen kernel, kemudian seluruh hasil perkalian tersebut dijumlahkan. Dengan mekanisme ini, konvolusi dapat menangkap pola lokal seperti tepi, garis, lengkungan, atau bentuk sederhana yang kemudian dapat digunakan oleh lapisan berikutnya untuk membentuk fitur yang lebih kompleks \cite{Goodfellow2016DeepLearning,Lecun1998GradientBasedLearning}.
+  
+  Secara matematis, operasi konvolusi dua dimensi pada masukan dengan banyak kanal dapat dituliskan sebagai berikut:
+  \begin{equation}
+    y_{k,i,j} =
+    b_k +
+    \sum_{c=0}^{C_{\text{in}}-1}
+    \sum_{m=0}^{K_h-1}
+    \sum_{n=0}^{K_w-1}
+    x_{c,\,iS+m-P,\,jS+n-P}
+    \cdot
+    w_{k,c,m,n}
+    \label{eq:conv2d}
+  \end{equation}
+    dengan $x$ adalah data masukan, $w$ adalah bobot kernel, $b_k$ adalah bias pada kanal keluaran ke-$k$, $C_{\text{in}}$ adalah jumlah kanal masukan, $K_h$ dan $K_w$ adalah ukuran tinggi dan lebar kernel, $S$ adalah \emph{stride}, dan $P$ adalah \emph{padding}. Indeks $i$ dan $j$ menunjukkan posisi spasial pada \emph{feature map} keluaran.
+
+    Ukuran keluaran dari operasi konvolusi dipengaruhi oleh ukuran masukan, ukuran kernel, \emph{stride}, dan \emph{padding}. Jika tinggi dan lebar masukan adalah $H_{\text{in}}$ dan $W_{\text{in}}$, maka ukuran keluarannya dapat dihitung dengan:
+    \begin{equation}
+        H_{\text{out}} =
+        \left\lfloor
+        \frac{H_{\text{in}} + 2P - K_h}{S}
+        \right\rfloor + 1
+        \label{eq:conv_height}
+    \end{equation}
+    \begin{equation}
+        W_{\text{out}} =
+        \left\lfloor
+        \frac{W_{\text{in}} + 2P - K_w}{S}
+        \right\rfloor + 1
+        \label{eq:conv_width}
+    \end{equation}
+    Pada implementasi perangkat keras, persamaan konvolusi tersebut direalisasikan sebagai operasi \emph{multiply accumulate} (MAC), yaitu perkalian antara data dan bobot yang diikuti dengan penjumlahan akumulatif. Karena operasi ini dilakukan berulang pada banyak piksel dan banyak kernel, konvolusi menjadi bagian yang paling dominan dalam beban komputasi CNN.
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.95\textwidth]{gambar/cnn.png}
+        \caption{Operasi Konvolusi}
+        \label{fig:conv-operation}
+    \end{figure}
+
+
+    \subsection{\emph{Neural Network}}
+    \emph{Neural network} merupakan model komputasi yang tersusun dari beberapa lapisan neuron buatan. Setiap neuron menerima sejumlah masukan, melakukan operasi penjumlahan berbobot, menambahkan bias, kemudian melewatkan hasilnya ke fungsi aktivasi. Mekanisme ini membuat \emph{neural network} mampu membentuk hubungan non-linear antara data masukan dan keluaran. Dalam konteks klasifikasi citra, lapisan-lapisan tersebut digunakan untuk mengubah data piksel menjadi representasi fitur yang kemudian dipetakan menjadi kelas tertentu \cite{Goodfellow2016DeepLearning}.
+
+    Operasi dasar pada sebuah neuron dapat dituliskan sebagai berikut:
+    \begin{equation}
+        z_j^{(l)} =
+        \sum_{i=1}^{N}
+        w_{j,i}^{(l)} a_i^{(l-1)}
+        + b_j^{(l)}
+        \label{eq:neuron_linear}
+    \end{equation}
+    \begin{equation}
+        a_j^{(l)} =
+        \phi \left( z_j^{(l)} \right)
+        \label{eq:neuron_activation}
+    \end{equation}
+    dengan $a_i^{(l-1)}$ adalah keluaran neuron dari lapisan sebelumnya, $w_{j,i}^{(l)}$ adalah bobot penghubung, $b_j^{(l)}$ adalah bias, $z_j^{(l)}$ adalah hasil penjumlahan berbobot, dan $\phi(\cdot)$ adalah fungsi aktivasi. Dalam bentuk matriks, operasi pada satu lapisan dapat ditulis sebagai:
+    \begin{equation}
+        \mathbf{a}^{(l)} =
+        \phi \left(
+        \mathbf{W}^{(l)} \mathbf{a}^{(l-1)}
+        + \mathbf{b}^{(l)}
+        \right)
+        \label{eq:nn_layer}
+    \end{equation}
+
+    Pada proses klasifikasi, keluaran akhir jaringan biasanya merepresentasikan skor untuk masing-masing kelas. Skor tersebut dapat diproses menggunakan fungsi \emph{softmax} agar menjadi nilai probabilitas:
+    \begin{equation}
+        \hat{y}_k =
+        \frac{e^{z_k}}
+        {\sum_{r=1}^{C} e^{z_r}}
+        \label{eq:softmax}
+    \end{equation}
+    dengan $\hat{y}_k$ adalah probabilitas untuk kelas ke-$k$ dan $C$ adalah jumlah kelas. Kelas prediksi kemudian dapat ditentukan dengan mengambil indeks yang memiliki nilai terbesar:
+    \begin{equation}
+        \hat{c} =
+        \operatorname*{argmax}_{k}(\hat{y}_k)
+        \label{eq:argmax}
+    \end{equation}
+    Pada CNN, konsep \emph{neural network} tetap digunakan, tetapi lapisan awal jaringan tidak langsung berbentuk \emph{fully connected}. Lapisan awal CNN menggunakan konvolusi agar proses ekstraksi fitur citra lebih efisien dan tetap mempertahankan informasi spasial dari masukan.
+
+
+    \subsection{\emph{Max Pool}}
+    \emph{Max pool} merupakan operasi reduksi spasial yang digunakan untuk memperkecil ukuran \emph{feature map} dengan cara mengambil nilai maksimum dari area tertentu. Operasi ini tidak memiliki parameter yang dipelajari seperti bobot atau bias, tetapi berperan penting dalam mengurangi ukuran data yang diteruskan ke lapisan berikutnya. Dengan ukuran \emph{feature map} yang lebih kecil, jumlah operasi pada lapisan selanjutnya dapat dikurangi sehingga komputasi menjadi lebih ringan \cite{Goodfellow2016DeepLearning,AlexNetPaper}.
+
+    Secara matematis, operasi \emph{max pool} dapat dituliskan sebagai:
+    \begin{equation}
+        y_{c,i,j} =
+        \max_{\substack{0 \leq m < K_h \\ 0 \leq n < K_w}}
+        x_{c,\,iS+m,\,jS+n}
+        \label{eq:maxpool}
+    \end{equation}
+    dengan $x$ adalah \emph{feature map} masukan, $y$ adalah \emph{feature map} keluaran, $c$ adalah indeks kanal, $K_h$ dan $K_w$ adalah ukuran jendela pooling, serta $S$ adalah \emph{stride}. Jika digunakan jendela $2 \times 2$ dengan \emph{stride} 2, maka ukuran spasial \emph{feature map} akan berkurang menjadi setengah dari ukuran sebelumnya.
+
+    Ukuran keluaran dari operasi \emph{max pool} dapat dihitung dengan persamaan yang mirip dengan konvolusi:
+    \begin{equation}
+        H_{\text{out}} =
+        \left\lfloor
+        \frac{H_{\text{in}} - K_h}{S}
+        \right\rfloor + 1
+        \label{eq:maxpool_height}
+    \end{equation}
+    \begin{equation}
+        W_{\text{out}} =
+        \left\lfloor
+        \frac{W_{\text{in}} - K_w}{S}
+        \right\rfloor + 1
+        \label{eq:maxpool_width}
+    \end{equation}
+    Selain mengurangi ukuran data, \emph{max pool} juga membantu mempertahankan fitur yang paling dominan pada suatu area. Hal ini membuat jaringan lebih toleran terhadap sedikit pergeseran posisi objek pada citra, karena nilai fitur yang kuat tetap dapat dipertahankan meskipun posisinya tidak selalu sama persis.
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.95\textwidth]{gambar/pool.png}
+        \caption{Operasi Max Pool}
+        \label{fig:maxpool-operation}
+    \end{figure}
+
+
+    \subsection{\emph{Rectified Linear Unit} (ReLU)}
+    \emph{Rectified Linear Unit} (ReLU) merupakan fungsi aktivasi yang banyak digunakan pada CNN karena bentuknya sederhana dan efisien secara komputasi. Fungsi ini akan meneruskan nilai masukan jika bernilai positif, sedangkan nilai negatif akan diubah menjadi nol. Dengan demikian, ReLU memberikan sifat non-linear pada jaringan tanpa membutuhkan operasi matematika yang kompleks seperti eksponensial atau trigonometri \cite{Nair2010ReLU,AlexNetPaper}.
+
+    Fungsi ReLU dapat dituliskan sebagai:
+    \begin{equation}
+        f(x) =
+        \max(0, x)
+        \label{eq:relu}
+    \end{equation}
+    atau dalam bentuk fungsi potongan:
+    \begin{equation}
+        f(x) =
+        \begin{cases}
+            x, & x > 0 \\
+            0, & x \leq 0
+        \end{cases}
+        \label{eq:relu_piecewise}
+    \end{equation}
+    Turunan fungsi ReLU dapat dituliskan sebagai:
+    \begin{equation}
+        f'(x) =
+        \begin{cases}
+            1, & x > 0 \\
+            0, & x < 0
+        \end{cases}
+        \label{eq:relu_derivative}
+    \end{equation}
+    Pada titik $x=0$, turunan ReLU tidak terdefinisi secara matematis, tetapi pada implementasi jaringan saraf biasanya dapat dipilih sebagai 0 atau 1 sesuai kebutuhan implementasi.
+
+    Dalam implementasi perangkat keras, ReLU sangat sederhana karena hanya membutuhkan pembanding terhadap nol. Jika nilai masukan lebih besar dari nol, maka nilai tersebut diteruskan. Jika nilai masukan lebih kecil atau sama dengan nol, maka keluaran dibuat nol. Kesederhanaan ini membuat ReLU cocok digunakan pada akselerator CNN berbasis FPGA, terutama ketika sistem dirancang untuk menekan penggunaan sumber daya dan menjaga latensi komputasi tetap rendah.
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.95\textwidth]{gambar/relu.png}
+        \caption{Grafik ReLU}
+        \label{fig:relu-activation}
+    \end{figure}
+
+
+    \subsection{CNN}
+    \emph{Convolutional Neural Network} (CNN) merupakan pengembangan dari \emph{neural network} yang dirancang khusus untuk mengolah data berbentuk grid, seperti citra digital. CNN memanfaatkan operasi konvolusi untuk mengekstraksi fitur lokal dari citra, kemudian menggabungkannya melalui beberapa lapisan agar jaringan dapat mengenali pola yang lebih kompleks. Pada lapisan awal, CNN biasanya menangkap fitur sederhana seperti tepi atau garis. Pada lapisan yang lebih dalam, fitur tersebut dapat berkembang menjadi bentuk, tekstur, atau pola yang lebih spesifik terhadap kelas tertentu \cite{Lecun1998GradientBasedLearning,Goodfellow2016DeepLearning}.
+
+    Secara umum, alur komputasi CNN dapat dipandang sebagai komposisi dari beberapa fungsi lapisan:
+    \begin{equation}
+        \mathbf{y} =
+        f_{\theta}(\mathbf{x}) =
+        g_L \left(
+        g_{L-1}
+        \left(
+        \cdots
+        g_2
+        \left(
+        g_1(\mathbf{x})
+        \right)
+        \cdots
+        \right)
+        \right)
+        \label{eq:cnn_composition}
+    \end{equation}
+    dengan $\mathbf{x}$ adalah citra masukan, $\mathbf{y}$ adalah keluaran jaringan, $g_l$ adalah operasi pada lapisan ke-$l$, dan $\theta$ adalah seluruh parameter yang dipelajari, seperti bobot dan bias. Lapisan pada CNN umumnya terdiri dari kombinasi konvolusi, fungsi aktivasi, \emph{pooling}, dan \emph{fully connected layer}. Kombinasi tersebut membuat CNN dapat melakukan ekstraksi fitur sekaligus klasifikasi dalam satu rangkaian komputasi.
+
+    Keunggulan CNN dibandingkan \emph{fully connected neural network} biasa adalah adanya konsep \emph{local connectivity} dan \emph{weight sharing}. \emph{Local connectivity} berarti neuron hanya terhubung pada area lokal dari citra, sedangkan \emph{weight sharing} berarti kernel yang sama digunakan berulang pada banyak posisi. Kedua konsep ini membuat jumlah parameter CNN lebih efisien dibandingkan jika seluruh piksel langsung dihubungkan ke neuron pada lapisan berikutnya. Hal ini menjadi salah satu alasan CNN banyak digunakan pada tugas pengenalan citra dan klasifikasi objek \cite{AlexNetPaper}.
+
+    Pada penelitian ini, CNN digunakan sebagai model utama untuk melakukan klasifikasi citra. Operasi yang paling dominan pada CNN adalah konvolusi karena melibatkan banyak operasi perkalian dan penjumlahan. Oleh karena itu, ketika CNN diimplementasikan pada FPGA, bagian konvolusi menjadi fokus utama untuk dioptimalkan melalui pemetaan operasi MAC, penggunaan format bilangan \emph{fixed-point}, dan pemanfaatan paralelisme perangkat keras. Dengan pendekatan tersebut, CNN dapat dijalankan sebagai akselerator perangkat keras yang lebih sesuai untuk sistem \emph{embedded vision} dan aplikasi \emph{real-time}.
 
   \subsection{Kuantitasi}
   Kuantitasi merupakan proses mengubah representasi numerik dari presisi tinggi
@@ -557,9 +745,9 @@
           \textbf{Komponen} & \textbf{Spesifikasi} \\
           \hline
           FPGA & Xilinx Artix-7 XC7A100T \\
-          LUT & 63.400 \\
-          Flip-Flop & 126.800 \\
-          Block RAM & 4.860 Kb \\
+          LUT & 63400 \\
+          Flip-Flop & 126800 \\
+          Block RAM & 4860 Kb \\
           DSP Slice & 240 DSP48E1 \\
           DDR & 256 MB DDR3L \\
           \hline
@@ -641,16 +829,6 @@
   karena tampilan layar bergerak mengikuti timing yang tetap. Jika data piksel tidak
   tersedia pada saat dibutuhkan, tampilan dapat mengalami gangguan seperti warna
   tidak sesuai, gambar bergeser, atau frame terlihat tidak stabil.
-
-  \subsection{CNN}
-
-  \subsection{Konvolusi}
-
-  \subsection{\emph{Neural Network}}
-
-  \subsection{\emph{Max Pool}}
-
-  \subsection{\emph{Reactivied Linear Unit} (RELU)}
 
 \section{Analisis Perbandingan Metode}
 
