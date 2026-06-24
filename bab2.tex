@@ -488,13 +488,6 @@
 
     Dalam implementasi perangkat keras, ReLU sangat sederhana karena hanya membutuhkan pembanding terhadap nol. Jika nilai masukan lebih besar dari nol, maka nilai tersebut diteruskan. Jika nilai masukan lebih kecil atau sama dengan nol, maka keluaran dibuat nol. Kesederhanaan ini membuat ReLU cocok digunakan pada akselerator CNN berbasis FPGA, terutama ketika sistem dirancang untuk menekan penggunaan sumber daya dan menjaga latensi komputasi tetap rendah.
 
-    \begin{figure}[H]
-        \centering
-        \includegraphics[width=0.95\textwidth]{gambar/relu.png}
-        \caption{Grafik ReLU}
-        \label{fig:relu-activation}
-    \end{figure}
-
 
     \subsection{CNN}
     \emph{Convolutional Neural Network} (CNN) merupakan pengembangan dari \emph{neural network} yang dirancang khusus untuk mengolah data berbentuk grid, seperti citra digital. CNN memanfaatkan operasi konvolusi untuk mengekstraksi fitur lokal dari citra, kemudian menggabungkannya melalui beberapa lapisan agar jaringan dapat mengenali pola yang lebih kompleks. Pada lapisan awal, CNN biasanya menangkap fitur sederhana seperti tepi atau garis. Pada lapisan yang lebih dalam, fitur tersebut dapat berkembang menjadi bentuk, tekstur, atau pola yang lebih spesifik terhadap kelas tertentu \cite{Lecun1998GradientBasedLearning,Goodfellow2016DeepLearning}.

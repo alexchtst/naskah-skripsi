@@ -105,10 +105,90 @@
 	memerlukan proses pelatihan ulang di dalam FPGA.
 
     \subsection{Rancangan Representasi Fixed-Point}
+	Representasi numerik pada rancangan akselerator CNN dibuat menggunakan format
+	\emph{fixed-point} 16-bit. Pemilihan format ini dilakukan karena model CNN pada
+	tahap pelatihan masih menggunakan \emph{floating-point}, sedangkan implementasi
+	pada FPGA lebih sesuai apabila operasi aritmetika direalisasikan dalam bentuk
+	bilangan integer atau \emph{fixed-point}. Operasi \emph{floating-point} membutuhkan
+	rangkaian aritmetika yang lebih kompleks dan dapat meningkatkan penggunaan
+	resource, terutama pada operasi perkalian dan akumulasi yang muncul berulang pada
+	layer konvolusi dan \emph{fully connected}. Oleh karena itu, parameter model hasil
+	pelatihan, seperti bobot dan bias, dikonversi terlebih dahulu ke dalam format
+	\emph{fixed-point} sebelum dimasukkan ke dalam memori parameter pada Verilog
+	\cite{Zhang2015OptimizingCNNFPGA,Solovyev2019FixedPointCNN}.
+
+	Pada penelitian ini, representasi \emph{fixed-point} menggunakan jumlah bit pecahan
+	atau \emph{fractional bit} sebesar $F=14$. Dengan konfigurasi tersebut, nilai
+	\emph{floating-point} dikalikan dengan faktor skala $2^{14}$, kemudian dibulatkan
+	dan dibatasi agar tetap berada pada rentang bilangan bertanda 16-bit. Pemakaian
+	\emph{fractional bit} ini penting karena nilai bobot CNN umumnya berada pada
+	rentang kecil, sehingga dibutuhkan resolusi pecahan yang cukup halus agar informasi
+	parameter tidak banyak hilang setelah proses kuantitasi. Secara umum, proses
+	konversi dari nilai real $x$ ke representasi \emph{fixed-point} 16-bit dapat
+	dituliskan sebagai berikut.
+
+	\begin{equation}
+	q_{16} =
+	\operatorname{clip}
+	\left(
+	\operatorname{round}(x \cdot 2^F),
+	-2^{15},
+	2^{15}-1
+	\right)
+	\label{eq:fixed-point-1}
+	\end{equation}
+
+	\begin{equation}
+	\hat{x}{16} = q{16} \cdot 2^{-F}
+	\label{eq:fixed-point-2}
+	\end{equation}
+
+	Pada Persamaan \ref{eq:fixed-point-1} dan \ref{eq:fixed-point-2}, fungsi
+	$\operatorname{round}(\cdot\cdot\cdot)$ digunakan untuk membulatkan hasil perkalian skala ke
+	bilangan integer terdekat, sedangkan fungsi $\operatorname{clip}(\cdot\cdot\cdot)$ digunakan
+	untuk mencegah nilai keluar dari rentang 16-bit bertanda. Dengan $F=14$, nilai
+	yang disimpan memiliki resolusi sebesar $2^{-14}$. Artinya, perubahan kecil pada
+	nilai bobot masih dapat direpresentasikan dengan cukup baik. Konfigurasi ini
+	dipilih sebagai titik tengah antara ketelitian numerik dan efisiensi hardware,
+	karena jumlah bit pecahan yang terlalu kecil dapat memperbesar galat kuantitasi,
+	sedangkan jumlah bit pecahan yang terlalu besar dapat mempersempit rentang nilai
+	integer yang dapat direpresentasikan \cite{Lin2016FixedPointQuantization}.
+
+	Konversi parameter pada setiap layer dilakukan dengan prinsip yang sama \cite{Gupta2015LimitedPrecision}. Bobot
+	hasil pelatihan dikonversi menjadi $q_w$, aktivasi dikonversi menjadi $q_a$, dan
+	bias dikonversi menjadi $q_b$. Pada rancangan ini, bobot dan bias disimpan dalam
+	format 16-bit bertanda, sedangkan hasil perkalian dan akumulasi pada jalur MAC
+	dibuat lebih lebar agar tidak langsung mengalami \emph{overflow}. Proses
+	kuantitasi masing-masing parameter dapat dituliskan sebagai berikut.
+
+	Proses translasi parameter dari Python ke Verilog dilakukan dengan mengubah nilai
+	\emph{floating-point} hasil pelatihan menjadi data heksadesimal \emph{fixed-point}.
+	Kode translasi tersebut pada dasarnya melakukan tiga tahap utama, yaitu mengalikan
+	nilai parameter dengan $2^F$, membulatkan hasilnya ke bilangan integer, kemudian
+	membatasi nilai agar tetap berada pada rentang 16-bit bertanda. Hasil konversi
+	selanjutnya disimpan ke dalam file memori seperti \texttt{conv1\_w.mem}, 
+	\texttt{conv1\_b.mem}, \texttt{conv2\_w.mem}, \texttt{conv2\_b.mem}, dan file
+	parameter lain yang digunakan oleh modul Verilog. Dengan cara ini, parameter yang
+	digunakan pada simulasi Python dan implementasi Verilog tetap berasal dari model
+	yang sama, tetapi sudah berada dalam bentuk numerik yang sesuai untuk jalur data
+	FPGA.
 
 	\subsection{Rancangan Akselerator CNN pada FPGA}
 
-	Akselerator CNN pada FPGA dirancang untuk menjalankan proses inferensi secara langsung pada hardware. Operasi utama pada CNN adalah konvolusi, yaitu proses perkalian antara data input dengan bobot kernel yang kemudian dijumlahkan. Oleh karena itu, bagian utama dari akselerator CNN direalisasikan menggunakan struktur \emph{multiply accumulate} (MAC). Operasi MAC dipetakan ke DSP pada FPGA karena DSP lebih sesuai untuk menjalankan operasi perkalian dan akumulasi dibandingkan apabila seluruh operasi dilakukan menggunakan LUT. Namun, karena jumlah DSP pada FPGA terbatas, rancangan akselerator tidak dibuat paralel penuh, melainkan menggunakan kombinasi paralelisme dan \emph{time multiplexing} \cite{Xilinx2018DSP48E1, Yan2022ResourceMultiplexingCNN}. Target pemetaan resource pada masing-masing bagian CNN ditunjukkan pada Tabel~\ref{tab:target_resource}.
+	Akselerator CNN pada FPGA dirancang untuk menjalankan proses 
+	inferensi secara langsung pada hardware. Operasi utama pada 
+	CNN adalah konvolusi, yaitu proses perkalian antara data input 
+	dengan bobot kernel yang kemudian dijumlahkan. Oleh karena itu, 
+	bagian utama dari akselerator CNN direalisasikan menggunakan 
+	struktur \emph{multiply accumulate} (MAC). Operasi MAC dipetakan 
+	ke DSP pada FPGA karena DSP lebih sesuai untuk menjalankan 
+	operasi perkalian dan akumulasi dibandingkan apabila seluruh 
+	operasi dilakukan menggunakan LUT. Namun, karena jumlah DSP 
+	pada FPGA terbatas, rancangan akselerator tidak dibuat paralel 
+	penuh, melainkan menggunakan kombinasi paralelisme dan 
+	\emph{time multiplexing} \cite{Xilinx2018DSP48E1, Yan2022ResourceMultiplexingCNN}. 
+	Target pemetaan resource pada masing-masing bagian CNN 
+	ditunjukkan pada Tabel~\ref{tab:target_resource}.
 
 	\begin{table}[H]
 		\centering
@@ -119,24 +199,102 @@
 			\textbf{Layer CNN} & \textbf{Input} & \textbf{Output} & \textbf{Target DSP} & \textbf{Strategi Implementasi} \\ \hline
 			Conv 1 & 1 \emph{channel} & 8 \emph{channel} & 72 & Paralel untuk 8 output \emph{channel} \\ \hline
 			Conv 2 & 8 \emph{channel} & 16 \emph{channel} & 72 & \emph{Time multiplexing} 16 output \emph{channel} \\ \hline
-			Conv 3 & 16 \emph{channel} & 32 \emph{channel} & 72 & 32 output \emph{channel} dengan 2 grup input \\ \hline
-			Dense & 32 \emph{feature} & 10 kelas & 2 & MAC digunakan bergantian pada FC1 dan FC2 \\ \hline
+			Conv 3 & 16 \emph{channel} & 32 \emph{channel} & 72 & \emph{Time multiplexing} 32 output \emph{channel} \\ \hline
+			Dense & 32 \emph{feature} & 16 \emph{feature} & 8 & MAC digunakan bergantian pada pada setiap neuron \\ \hline
+			Dense & 16 \emph{feature} & 10 kelas & 10 & MAC digunakan bergantian pada pada setiap neuron \\ \hline
 		\end{tabular}
 	\end{table}
 
-	Pada rancangan ini, blok konvolusi pertama dibuat lebih paralel karena jumlah kanal input dan output masih kecil. Sementara itu, blok konvolusi kedua dan ketiga menggunakan \emph{time multiplexing} agar jumlah DSP yang digunakan tetap dapat dikendalikan. Conv2 menghitung beberapa output \emph{channel} secara bergantian menggunakan kelompok MAC yang sama. Conv3 juga menggunakan pendekatan serupa, tetapi kanal input dibagi menjadi dua kelompok sehingga satu kelompok MAC dapat dipakai ulang untuk menyelesaikan seluruh output \emph{channel}. Strategi ini membuat jumlah DSP yang digunakan lebih rendah dibandingkan implementasi paralel penuh, walaupun membutuhkan jumlah siklus yang lebih banyak untuk menyelesaikan satu keluaran fitur. Pendekatan ini sejalan dengan konsep \emph{folding} pada akselerator CNN FPGA, yaitu penggunaan resource komputasi yang lebih sedikit untuk menjalankan operasi yang lebih besar secara bergantian \cite{Umuroglu2017FINN}.
+	Pada rancangan ini, blok konvolusi pertama dibuat lebih 
+	paralel karena jumlah kanal input dan output masih kecil. 
+	Sementara itu, blok konvolusi kedua dan ketiga menggunakan 
+	\emph{time multiplexing} agar jumlah DSP yang digunakan 
+	tetap dapat dikendalikan. Conv2 menghitung beberapa output 
+	\emph{channel} secara bergantian menggunakan kelompok MAC 
+	yang sama. Conv3 juga menggunakan pendekatan serupa, tetapi 
+	kanal input dibagi menjadi dua kelompok sehingga satu 
+	kelompok MAC dapat dipakai ulang untuk menyelesaikan seluruh 
+	output \emph{channel}. Strategi ini membuat jumlah DSP yang 
+	digunakan lebih rendah dibandingkan implementasi paralel 
+	penuh, walaupun membutuhkan jumlah siklus yang lebih banyak 
+	untuk menyelesaikan satu keluaran fitur. Pendekatan ini 
+	sejalan dengan konsep \emph{folding} pada akselerator CNN 
+	FPGA, yaitu penggunaan resource komputasi yang lebih sedikit 
+	untuk menjalankan operasi yang lebih besar secara bergantian 
+	\cite{Umuroglu2017FINN}.
 
-	Selain MAC, bagian penting dari akselerator CNN adalah pembentukan window konvolusi. Karena operasi konvolusi $3 \times 3$ membutuhkan sekumpulan data piksel atau fitur yang berdekatan, maka digunakan \emph{shift register} dan \emph{line buffer} untuk membentuk window tersebut. Data input tidak dibaca ulang dari awal untuk setiap operasi konvolusi, tetapi digeser secara berurutan sehingga window baru dapat terbentuk dari data yang sudah tersimpan pada buffer baris sebelumnya. Penggunaan \emph{shift register} dan \emph{line buffer} ini membantu mengurangi kebutuhan akses memori dan membuat proses konvolusi lebih sesuai dengan aliran data streaming pada FPGA. Pendekatan serupa juga digunakan pada beberapa akselerator CNN berbasis FPGA, seperti FINN melalui \emph{Sliding Window Unit} dan AoCStream melalui arsitektur \emph{stream-based line-buffer} \cite{Umuroglu2017FINN, Kang2023AoCStream}.
+	Selain MAC, bagian penting dari akselerator CNN adalah 
+	pembentukan window konvolusi. Karena operasi konvolusi 
+	$3 \times 3$ membutuhkan sekumpulan data piksel atau fitur 
+	yang berdekatan, maka digunakan \emph{shift register} dan 
+	\emph{line buffer} untuk membentuk window tersebut. Data 
+	input tidak dibaca ulang dari awal untuk setiap operasi 
+	konvolusi, tetapi digeser secara berurutan sehingga window 
+	baru dapat terbentuk dari data yang sudah tersimpan pada 
+	buffer baris sebelumnya. Penggunaan \emph{shift register} 
+	dan \emph{line buffer} ini membantu mengurangi kebutuhan 
+	akses memori dan membuat proses konvolusi lebih sesuai 
+	dengan aliran data streaming pada FPGA. Pendekatan serupa 
+	juga digunakan pada beberapa akselerator CNN berbasis FPGA, 
+	seperti FINN melalui \emph{Sliding Window Unit} dan 
+	AoCStream melalui arsitektur \emph{stream-based line-buffer} 
+	\cite{Umuroglu2017FINN, Kang2023AoCStream}.
 
-	Setiap blok CNN dikendalikan menggunakan \emph{finite state machine} (FSM) \cite{Wakerly2005DigitalDesign}. FSM digunakan untuk mengatur urutan kerja pada masing-masing blok, seperti menunggu data masuk, menjalankan proses komputasi, mengumpulkan hasil perhitungan, dan mengirimkan data ke blok berikutnya. Pada blok yang menggunakan \emph{time multiplexing}, FSM berperan penting karena satu unit komputasi digunakan secara bergantian untuk beberapa \emph{channel}. Dengan demikian, FSM memastikan bahwa proses pengambilan data, pemilihan bobot, akumulasi hasil, dan pengiriman output dilakukan pada urutan yang benar \cite{Harris2021DigitalDesign}.
+	Setiap blok CNN dikendalikan menggunakan \emph{finite state machine} 
+	(FSM) \cite{Wakerly2005DigitalDesign}. FSM digunakan untuk mengatur 
+	urutan kerja pada masing-masing blok, seperti menunggu data masuk, 
+	menjalankan proses komputasi, mengumpulkan hasil perhitungan, dan 
+	mengirimkan data ke blok berikutnya. Pada blok yang menggunakan 
+	\emph{time multiplexing}, FSM berperan penting karena satu unit 
+	komputasi digunakan secara bergantian untuk beberapa \emph{channel}. 
+	Dengan demikian, FSM memastikan bahwa proses pengambilan data, 
+	pemilihan bobot, akumulasi hasil, dan pengiriman output dilakukan 
+	pada urutan yang benar \cite{Harris2021DigitalDesign}.
 
-	Untuk menjaga kestabilan aliran data antarblok, rancangan akselerator menggunakan FIFO dan mekanisme \emph{valid-ready}. FIFO digunakan sebagai penyangga antara blok yang memiliki kecepatan proses berbeda. Hal ini diperlukan karena tidak semua blok CNN menghasilkan data pada jumlah siklus yang sama. Misalnya, blok konvolusi yang menggunakan \emph{time multiplexing} membutuhkan waktu lebih lama dibandingkan blok pooling atau blok komparator \cite{Kim2017ThreadedCNNFIFO}. Dengan adanya FIFO, blok sebelumnya tetap dapat mengirim data selama FIFO belum penuh, sedangkan blok berikutnya dapat mengambil data ketika sudah siap. Mekanisme FIFO seperti ini umum digunakan pada desain hardware berbasis aliran data untuk memisahkan proses produksi dan konsumsi data \cite{Cummings2002AsyncFIFO}. Aliran data dengan mekanisme \emph{valid-ready} ditunjukkan pada Gambar~\ref{fig:valid-ready-cnn}.
+	Untuk menjaga kestabilan aliran data antarblok, rancangan 
+	akselerator menggunakan FIFO dan mekanisme \emph{valid-ready}. 
+	FIFO digunakan sebagai penyangga antara blok yang memiliki kecepatan 
+	proses berbeda. Hal ini diperlukan karena tidak semua blok CNN 
+	menghasilkan data pada jumlah siklus yang sama. Misalnya, blok 
+	konvolusi yang menggunakan \emph{time multiplexing} membutuhkan 
+	waktu lebih lama dibandingkan blok pooling atau blok komparator 
+	\cite{Kim2017ThreadedCNNFIFO}. Dengan adanya FIFO, blok sebelumnya 
+	tetap dapat mengirim data selama FIFO belum penuh, sedangkan blok 
+	berikutnya dapat mengambil data ketika sudah siap. Mekanisme FIFO 
+	seperti ini umum digunakan pada desain hardware berbasis aliran data 
+	untuk memisahkan proses produksi dan konsumsi data \cite{Cummings2002AsyncFIFO}. 
+	Aliran data dengan mekanisme \emph{valid-ready} ditunjukkan pada 
+	Gambar~\ref{fig:valid-ready-cnn}.
 
-	Mekanisme \emph{valid-ready} digunakan sebagai bentuk \emph{backpressure}. Sinyal \emph{valid} menunjukkan bahwa data dari blok sebelumnya sudah tersedia, sedangkan sinyal \emph{ready} menunjukkan bahwa blok berikutnya siap menerima data. Perpindahan data hanya terjadi ketika kedua sinyal tersebut aktif secara bersamaan. Dengan cara ini, counter, \emph{shift register}, FIFO, dan FSM hanya bergerak ketika data benar-benar berhasil diterima oleh blok berikutnya. Hal ini mencegah terjadinya kehilangan data atau pergeseran urutan fitur ketika salah satu blok sedang sibuk.
+	Mekanisme \emph{valid-ready} digunakan sebagai bentuk \emph{backpressure}. 
+	Sinyal \emph{valid} menunjukkan bahwa data dari blok sebelumnya sudah 
+	tersedia, sedangkan sinyal \emph{ready} menunjukkan bahwa blok berikutnya 
+	siap menerima data. Perpindahan data hanya terjadi ketika kedua sinyal 
+	tersebut aktif secara bersamaan. Dengan cara ini, counter, 
+	\emph{shift register}, FIFO, dan FSM hanya bergerak ketika data 
+	benar-benar berhasil diterima oleh blok berikutnya. Hal ini mencegah 
+	terjadinya kehilangan data atau pergeseran urutan fitur ketika salah 
+	satu blok sedang sibuk.
 
-	Data antarblok pada rancangan ini tetap menggunakan bus yang cukup lebar untuk menjaga hasil antara dari proses \emph{fixed-point}. Namun, sebelum data aktivasi masuk ke operasi MAC pada layer berikutnya, lebar aktivasi dibatasi agar operasi perkalian antara aktivasi dan bobot 16-bit tetap efisien pada DSP. Dengan demikian, hasil akumulasi MAC tetap memiliki lebar bit yang cukup besar untuk menjaga ketelitian, tetapi operand utama yang masuk ke multiplier tetap berada pada ukuran yang sesuai dengan karakteristik DSP FPGA.
+	Data antarblok pada rancangan ini tetap menggunakan bus yang cukup 
+	lebar untuk menjaga hasil antara dari proses \emph{fixed-point}. 
+	Namun, sebelum data aktivasi masuk ke operasi MAC pada layer 
+	berikutnya, lebar aktivasi dibatasi agar operasi perkalian antara 
+	aktivasi dan bobot 16-bit tetap efisien pada DSP. Dengan demikian, 
+	hasil akumulasi MAC tetap memiliki lebar bit yang cukup besar untuk 
+	menjaga ketelitian, tetapi operand utama yang masuk ke multiplier 
+	tetap berada pada ukuran yang sesuai dengan karakteristik DSP FPGA.
 
-	Secara keseluruhan, akselerator CNN dirancang sebagai rangkaian streaming yang terdiri dari beberapa blok utama, yaitu pembentuk window berbasis \emph{shift register}, unit MAC berbasis DSP, FSM pengendali, FIFO antarblok, serta mekanisme \emph{valid-ready}. Kombinasi ini membuat model CNN dapat dijalankan pada FPGA dengan menyesuaikan antara kebutuhan komputasi, keterbatasan resource, dan kestabilan aliran data. Penggunaan resource yang tinggi, terutama pada DSP, masih dapat diterima selama rancangan memenuhi timing dan menghasilkan keluaran inferensi yang sesuai dengan model acuan.
+	Secara keseluruhan, akselerator CNN dirancang sebagai rangkaian 
+	streaming yang terdiri dari beberapa blok utama, yaitu pembentuk 
+	window berbasis \emph{shift register}, unit MAC berbasis DSP, FSM 
+	pengendali, FIFO antarblok, serta mekanisme \emph{valid-ready}. 
+	Kombinasi ini membuat model CNN dapat dijalankan pada FPGA dengan 
+	menyesuaikan antara kebutuhan komputasi, keterbatasan resource, dan 
+	kestabilan aliran data. Penggunaan resource yang tinggi, 
+	terutama pada DSP, masih dapat diterima selama rancangan memenuhi 
+	timing dan menghasilkan keluaran inferensi yang sesuai dengan model 
+	acuan.
 
     \subsection{Rancangan Sistem Kamera, DDR, dan VGA}
 
@@ -189,7 +347,7 @@ endcase
     \subsection{Evaluasi Latensi Inferensi}
     \subsection{Evaluasi Penggunaan Resource FPGA}
     \subsection{Evaluasi Daya}
-    \subsection{Evaluasi Tampilan Real-Time}
+    \subsection{Evaluasi Tampilan Real Time}
 
 \section{Tahapan Pelaksanaan}
 Tahapan pelaksanaan penelitian ini ditunjukkan pada 
