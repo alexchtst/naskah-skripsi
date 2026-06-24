@@ -136,11 +136,14 @@ Kesalahan di luar diagonal perlu dibaca sebagai konsekuensi dari kemiripan visua
 
 Tabel parameter model pada Python menampilkan bentuk tensor, rentang nilai floating-point, dan jumlah parameter pada setiap layer. Rentang nilai tersebut menjadi dasar untuk menentukan apakah format fixed-point 16-bit mampu merepresentasikan bobot dan bias tanpa kehilangan informasi yang berlebihan.
 
+Pada penelitian ini, format kuantisasi yang digunakan adalah Q2.14, yaitu 16 bit bertanda dengan dua bit untuk bagian integer termasuk bit tanda dan 14 bit untuk bagian fraksi. Format ini dipilih karena nilai parameter model berada pada rentang kecil dan tidak keluar dari rentang $-2$ sampai $2$. Dengan demikian, dua bit integer sudah cukup untuk menampung rentang nilai parameter, sedangkan 14 bit fraksi digunakan untuk mempertahankan resolusi pecahan.
+
 Nilai parameter yang berada pada rentang relatif kecil mendukung penggunaan fractional bit $F=14$, karena resolusi pecahan menjadi penting untuk mempertahankan perubahan kecil pada bobot. Informasi ini juga menjelaskan mengapa kuantisasi perlu dievaluasi per layer sebelum parameter dimasukkan ke implementasi Verilog.
 	\begin{table}[htbp]
 	\centering
 		\caption{Hasil Kuantisasi Parameter}
 		\vspace{2mm}
+		\label{table:hasil-kuntitasi}
 		\small
 		\begin{tabular}{lccccc}
 			\toprule
@@ -162,9 +165,8 @@ Nilai parameter yang berada pada rentang relatif kecil mendukung penggunaan frac
 
 \section{Hasil Implementasi CNN Accelerator pada FPGA}
 
-Tabel hasil kuantisasi menunjukkan bahwa seluruh parameter memiliki nilai saturasi rendah dan tinggi sebesar nol. Hasil ini mengindikasikan bahwa format fixed-point 16-bit yang digunakan masih mampu menampung rentang parameter hasil pelatihan.
+Tabel~\ref{table:hasil-kuntitasi} menunjukkan bahwa seluruh parameter hasil kuantisasi memiliki nilai \emph{Low Sat.} dan \emph{High Sat.} sebesar nol, sehingga tidak ada bobot maupun bias yang terpotong ke batas bawah atau batas atas representasi Q2.14. Saturasi pada kuantisasi terjadi ketika nilai real berada di luar rentang representasi dan harus di-\emph{clip} ke nilai minimum atau maksimum, sebagaimana prinsip \emph{clipping} pada kuantisasi integer yang dibahas oleh Jacob et al. serta pentingnya pengendalian efek presisi terbatas pada representasi fixed-point yang dijelaskan oleh Gupta et al. \cite{Jacob2018Quantization,Gupta2015LimitedPrecision}. Dengan tidak ditemukannya saturasi, format fixed-point 16-bit Q2.14 yang menggunakan dua bit integer termasuk bit tanda dan 14 bit fraksi dapat dinyatakan cukup untuk menampung rentang parameter model yang berada dalam interval $-2$ sampai $2$. Implikasinya, alokasi bit dapat lebih diprioritaskan untuk bagian fraksi agar resolusi parameter tetap halus tanpa mengorbankan rentang integer yang sebenarnya tidak dibutuhkan oleh bobot dan bias pada model ini.
 
-Tidak adanya saturasi penting karena saturasi dapat mengubah bobot atau bias secara ekstrem dan berpotensi merusak keluaran inferensi. Dengan fractional bit $F=14$, resolusi pecahan tetap dipertahankan, sementara ukuran data menjadi lebih sesuai untuk jalur aritmetika FPGA dibandingkan floating-point.
     \subsection{Arsitektur CNN Accelerator pada FPGA}
 	\begin{figure}[H]
 		\centering
@@ -442,7 +444,7 @@ Hasil daya ini sejalan dengan literatur yang menempatkan FPGA sebagai alternatif
       	\label{fig:argmax-bit-accuracy}
   	\end{figure}
 
-Gambar~\ref{fig:block1-bit-different} sampai Gambar~\ref{fig:blockdense-bit-different} memperlihatkan perbandingan nilai antara implementasi Python dan Verilog pada beberapa blok CNN. Perbandingan ini digunakan untuk menilai dampak fixed-point dan implementasi hardware terhadap nilai aktivasi di setiap tahap.
+Gambar~\ref{fig:block1-bit-different}, Gambar~\ref{fig:block2-bit-different}, Gambar~\ref{fig:block3-bit-different} dan Gambar~\ref{fig:blockdense-bit-different} memperlihatkan perbandingan nilai antara implementasi Python dan Verilog pada beberapa blok CNN. Perbandingan ini digunakan untuk menilai dampak fixed-point dan implementasi hardware terhadap nilai aktivasi di setiap tahap.
 
 Perbedaan nilai yang muncul merupakan konsekuensi dari pembulatan, pemotongan lebar bit, dan representasi fixed-point. Evaluasi bertahap diperlukan karena galat pada blok awal dapat memengaruhi blok berikutnya. Gambar~\ref{fig:argmax-bit-accuracy} kemudian digunakan untuk melihat apakah perbedaan numerik tersebut berdampak pada keputusan akhir setelah argmax.
 

@@ -4,7 +4,7 @@
 Berdasarkan hasil perancangan, implementasi, dan pengujian yang telah dilakukan, dapat disimpulkan beberapa hal sebagai berikut.
 
 \begin{enumerate}
-    \item Model CNN berhasil diimplementasikan pada board FPGA menggunakan representasi fixed-point 16-bit. Proses kuantisasi dilakukan terhadap parameter bobot dan bias model sehingga dapat digunakan pada modul Verilog tanpa menggunakan operasi floating-point.
+    \item Model CNN berhasil diimplementasikan pada board FPGA menggunakan representasi fixed-point 16-bit Q2.14, yaitu dua bit untuk bagian integer termasuk bit tanda dan 14 bit untuk bagian fraksi. Format ini digunakan karena parameter model tidak keluar dari rentang $-2$ sampai $2$, sehingga resolusi pecahan dapat diprioritaskan. Proses kuantisasi dilakukan terhadap parameter bobot dan bias model sehingga dapat digunakan pada modul Verilog tanpa menggunakan operasi floating-point.
 
     \item Hasil implementasi CNN accelerator menunjukkan bahwa sistem mampu menghasilkan keluaran inferensi dalam 3802 siklus clock. Pada frekuensi kerja 100 MHz, nilai tersebut setara dengan latensi sebesar 38,02 $\mu$s.
 

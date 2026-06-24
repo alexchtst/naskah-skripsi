@@ -376,7 +376,12 @@
 
   Kuantitasi \emph{fixed-point} 16-bit menggunakan posisi bit pecahan yang tetap,
   sehingga nilai real dikonversi menjadi bilangan integer bertanda dengan faktor
-  skala $2^F$. Gupta et al. membuktikan bahwa representasi 16-bit
+  skala $2^F$. Pada penelitian ini, format yang digunakan adalah Q2.14, yaitu
+  representasi 16-bit bertanda dengan dua bit untuk bagian integer termasuk bit
+  tanda dan 14 bit untuk bagian fraksi. Konfigurasi ini memberikan rentang nilai
+  real sekitar $[-2, 2)$ dengan resolusi $2^{-14}$. Format tersebut sesuai
+  digunakan karena nilai parameter model berada pada rentang kecil dan tidak
+  keluar dari rentang $-2$ sampai $2$. Gupta et al. membuktikan bahwa representasi 16-bit
   \emph{fixed-point} dapat digunakan pada jaringan saraf dengan hasil yang tetap
   kompetitif, sedangkan Lin et al. dan Goyal et al. menunjukkan pentingnya
   pemilihan jumlah bit dan posisi pecahan agar kesalahan kuantitasi tidak merusak
@@ -402,6 +407,11 @@
 
   Untuk parameter CNN, bobot, aktivasi, dan bias dapat dikonversi menggunakan
   jumlah bit pecahan yang disesuaikan dengan kebutuhan masing-masing parameter.
+  Pada rancangan ini, bobot dan bias model menggunakan konfigurasi Q2.14 yang
+  sama agar format parameter konsisten ketika dimuat ke memori Verilog. Dengan
+  14 bit fraksi, perubahan kecil pada parameter tetap dapat direpresentasikan,
+  sedangkan dua bit bagian integer sudah cukup karena hasil pengamatan parameter
+  menunjukkan nilai tidak melewati rentang $-2$ sampai $2$.
 
   \begin{equation}
       q_w =
@@ -444,8 +454,11 @@
   Sebaliknya, \emph{fixed-point} 16-bit membutuhkan sumber daya yang lebih besar
   dibandingkan \emph{int8}, tetapi memberikan rentang dan ketelitian yang lebih aman untuk
   menjaga hasil komputasi tetap dekat dengan model \emph{floating-point}. Pada
-  penelitian ini, \emph{fixed-point} 16-bit dipilih karena memberikan titik tengah
-  yang kuat antara efisiensi implementasi FPGA dan kestabilan akurasi inferensi.
+  penelitian ini, \emph{fixed-point} 16-bit Q2.14 dipilih karena memberikan titik
+  tengah yang kuat antara efisiensi implementasi FPGA dan kestabilan akurasi
+  inferensi. Pemilihan dua bit integer dan 14 bit fraksi juga didasarkan pada
+  karakter parameter model yang berada di dalam rentang $-2$ sampai $2$, sehingga
+  bit yang tersedia dapat diprioritaskan untuk meningkatkan resolusi pecahan.
 
   \subsection{Multiply Accumulate}
   Multiply Accumulate (MAC) adalah operasi komputasi yang terdiri dari proses perkalian
@@ -914,7 +927,7 @@ citra agar lebih mendekati kebutuhan aplikasi \emph{embedded vision} secara lang
 
 \begin{table}[ht]
     \centering
-    \caption{Perbandingan performa penelitian terkait}
+    \caption{Perbandingan performa penelitian CNN Accelerator}
     \label{tab:comparison_performance}
     \resizebox{\textwidth}{!}{
     \begin{tabular}{|l|c|c|c|c|c|c|}

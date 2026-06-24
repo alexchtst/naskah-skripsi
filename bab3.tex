@@ -32,12 +32,12 @@
 		\begin{enumerate}[a.]
 		\begin{singlespace}
 		\itemsep0em
-			\item Software VIVADO,
-			\item Linux Operating System,
-			\item Python,
-			\item Kagle,
-			\item Verilog Icairus,
-			\item Visual Studio Code.
+				\item Software VIVADO,
+				\item Linux Operating System,
+				\item Python,
+				\item Kaggle,
+				\item Verilog Icairus,
+				\item Visual Studio Code.
 		\end{singlespace}
 		\end{enumerate}
 
@@ -58,9 +58,29 @@
 	dilakukan agar proses inferensi CNN tidak harus
 	dilakukan pada seluruh frame, melainkan hanya pada
 	area tertentu yang dianggap relevan. Dengan demikian,
-	beban komputasi dapat dikurangi tanpa menghilangkan
-	fungsi utama sistem sebagai sistem klasifikasi citra
-	berbasis FPGA.
+		beban komputasi dapat dikurangi tanpa menghilangkan
+		fungsi utama sistem sebagai sistem klasifikasi citra
+		berbasis FPGA.
+
+	\subsection{Dataset}
+		Dataset yang digunakan pada penelitian ini adalah dataset MNIST yang diperoleh
+		dari Kaggle \cite{KaggleMNISTDataset}. Dataset MNIST berisi citra angka
+		tulisan tangan dari digit 0 sampai 9. Setiap citra memiliki ukuran
+		$28 \times 28$ piksel dan direpresentasikan dalam bentuk \emph{grayscale}.
+		Karakteristik ini sesuai dengan kebutuhan penelitian karena rancangan CNN
+		menggunakan satu kanal input dan menghasilkan 10 kelas keluaran, yaitu
+		kelas digit 0 sampai 9. Dengan demikian, dataset MNIST dapat digunakan
+		sebagai dasar pelatihan dan pengujian model sebelum parameter model
+		dikonversi ke format \emph{fixed-point} untuk implementasi pada FPGA.
+
+		Pemilihan MNIST juga dilakukan karena ukuran citra relatif kecil dan struktur
+		datanya sederhana, sehingga sesuai untuk tahap validasi awal akselerator CNN
+		berbasis FPGA. Ukuran input $28 \times 28$ memungkinkan proses konvolusi,
+		pooling, dan \emph{fully connected} diuji tanpa membutuhkan kapasitas memori
+		dan resource komputasi yang terlalu besar. Hal ini penting karena fokus
+		penelitian bukan hanya pada akurasi model, tetapi juga pada keterlaksanaan
+		implementasi hardware, penggunaan resource FPGA, latensi inferensi, serta
+		perbandingan hasil komputasi antara Python dan Verilog.
 
     \subsection{Rancangan Arsitektur CNN}
 	Arsitektur CNN yang digunakan pada penelitian ini
@@ -117,15 +137,24 @@
 	\emph{fixed-point} sebelum dimasukkan ke dalam memori parameter pada Verilog
 	\cite{Zhang2015OptimizingCNNFPGA,Solovyev2019FixedPointCNN}.
 
-	Pada penelitian ini, representasi \emph{fixed-point} menggunakan jumlah bit pecahan
-	atau \emph{fractional bit} sebesar $F=14$. Dengan konfigurasi tersebut, nilai
+	Pada penelitian ini, representasi \emph{fixed-point} menggunakan format Q2.14,
+	yaitu format 16-bit bertanda dengan dua bit untuk bagian integer termasuk bit
+	tanda dan 14 bit untuk bagian fraksi. Dengan konfigurasi tersebut, nilai
 	\emph{floating-point} dikalikan dengan faktor skala $2^{14}$, kemudian dibulatkan
-	dan dibatasi agar tetap berada pada rentang bilangan bertanda 16-bit. Pemakaian
-	\emph{fractional bit} ini penting karena nilai bobot CNN umumnya berada pada
-	rentang kecil, sehingga dibutuhkan resolusi pecahan yang cukup halus agar informasi
-	parameter tidak banyak hilang setelah proses kuantitasi. Secara umum, proses
-	konversi dari nilai real $x$ ke representasi \emph{fixed-point} 16-bit dapat
-	dituliskan sebagai berikut.
+	dan dibatasi agar tetap berada pada rentang bilangan bertanda 16-bit. Format
+	Q2.14 memiliki rentang nilai real sekitar $[-2, 2)$ dengan resolusi sebesar
+	$2^{-14}$. Pemilihan format ini dilakukan karena nilai parameter model, baik
+	bobot maupun bias, tidak keluar dari rentang $-2$ sampai $2$, sehingga dua bit
+	bagian integer sudah cukup untuk menampung rentang nilai parameter.
+
+	Pemakaian 14 bit fraksi penting karena nilai bobot CNN umumnya berada pada
+	rentang kecil, sehingga dibutuhkan resolusi pecahan yang cukup halus agar
+	informasi parameter tidak banyak hilang setelah proses kuantitasi. Dengan
+	memprioritaskan bit untuk bagian fraksi, perubahan kecil pada parameter masih
+	dapat direpresentasikan dengan lebih baik dibandingkan apabila lebih banyak
+	bit dialokasikan untuk bagian integer. Secara umum, proses konversi dari nilai
+	real $x$ ke representasi \emph{fixed-point} 16-bit dapat dituliskan sebagai
+	berikut.
 
 	\begin{equation}
 	q_{16} =
@@ -149,10 +178,12 @@
 	untuk mencegah nilai keluar dari rentang 16-bit bertanda. Dengan $F=14$, nilai
 	yang disimpan memiliki resolusi sebesar $2^{-14}$. Artinya, perubahan kecil pada
 	nilai bobot masih dapat direpresentasikan dengan cukup baik. Konfigurasi ini
-	dipilih sebagai titik tengah antara ketelitian numerik dan efisiensi hardware,
-	karena jumlah bit pecahan yang terlalu kecil dapat memperbesar galat kuantitasi,
+	dipilih sebagai titik tengah antara ketelitian numerik dan efisiensi hardware.
+	Jumlah bit pecahan yang terlalu kecil dapat memperbesar galat kuantitasi,
 	sedangkan jumlah bit pecahan yang terlalu besar dapat mempersempit rentang nilai
-	integer yang dapat direpresentasikan \cite{Lin2016FixedPointQuantization}.
+	integer yang dapat direpresentasikan. Pada rancangan ini, penyempitan rentang
+	integer tersebut masih dapat diterima karena parameter hasil pelatihan berada
+	di dalam rentang $-2$ sampai $2$ \cite{Lin2016FixedPointQuantization}.
 
 	Konversi parameter pada setiap layer dilakukan dengan prinsip yang sama \cite{Gupta2015LimitedPrecision}. Bobot
 	hasil pelatihan dikonversi menjadi $q_w$, aktivasi dikonversi menjadi $q_a$, dan
@@ -304,7 +335,7 @@
 	ditangkap oleh logika penerima kamera, kemudian disusun menjadi data piksel
 	yang dapat ditulis ke DDR SDRAM. DDR digunakan karena kapasitas BRAM internal
 	lebih sesuai untuk buffer lokal, FIFO, dan data antara, sedangkan penyimpanan
-	frame membutuhkan kapasitas yang lebih besar.
+	frame membutuhkan kapasitas yang lebih besar \cite{OmniVision2006OV7670,Navaneethan2022OV7670VGA}.
 
 	Akses DDR dilakukan melalui MIG dan antarmuka AXI. Jalur tulis digunakan untuk
 	menyimpan frame dari kamera, sedangkan jalur baca digunakan untuk mengambil
@@ -312,13 +343,13 @@
 	Digilent bertugas menampilkan data citra dengan timing horizontal dan vertikal
 	yang sesuai. Pemisahan domain kamera, memori, dan VGA menuntut mekanisme
 	buffering agar perbedaan laju data tidak menyebabkan kehilangan piksel atau
-	gangguan tampilan.
+	gangguan tampilan \cite{ARM2020AXI,Xilinx2024MIG,DigilentVGADisplay}.
 
 	Pada tahap integrasi penuh, ROI dipilih dari frame yang tersedia dan dikonversi
 	menjadi masukan grayscale berukuran $28 \times 28$ piksel untuk CNN accelerator.
 	Hasil inferensi kemudian diproses oleh argmax untuk menentukan kelas prediksi.
 	Dengan rancangan ini, alur sistem dapat dijelaskan sebagai OV7670, DDR frame
-	buffer, ROI, CNN accelerator, argmax, dan VGA display.
+	buffer, ROI, CNN accelerator, argmax, dan VGA display \cite{Solovyev2019FixedPointCNN}.
 
 \section{Metode Implementasi}
 Metode implementasi dilakukan secara bertahap agar setiap bagian sistem dapat
@@ -326,20 +357,139 @@ diverifikasi sebelum digabungkan dengan blok lain. Tahapan dimulai dari model
 acuan di Python, dilanjutkan dengan kuantisasi parameter, translasi ke Verilog,
 implementasi periferal kamera dan VGA, serta implementasi DDR sebagai frame
 buffer. Urutan ini dipilih untuk memisahkan risiko kesalahan algoritmik dari
-risiko kesalahan integrasi perangkat keras.
+risiko kesalahan integrasi perangkat keras \cite{Solovyev2019FixedPointCNN,Jacob2018Quantization}.
 
     \subsection{Implementasi Model CNN di Python}
-	Model CNN terlebih dahulu dibangun dan dilatih menggunakan Python. Implementasi ini berfungsi sebagai baseline software untuk menentukan arsitektur, bobot, bias, serta keluaran referensi pada setiap layer. Hasil dari tahap ini digunakan sebagai acuan ketika model dipindahkan ke representasi fixed-point dan Verilog.
+	Model CNN terlebih dahulu dibangun dan dilatih menggunakan Python. Tahap ini
+	dilakukan karena Python menyediakan lingkungan yang lebih fleksibel untuk
+	mengembangkan arsitektur jaringan, menjalankan proses pelatihan, mengevaluasi
+	akurasi, serta mengamati keluaran pada setiap layer. Sebelum model dipindahkan
+	ke FPGA, perilaku algoritmiknya harus dipastikan terlebih dahulu agar
+	kesalahan yang muncul pada tahap hardware tidak berasal dari model yang belum
+	tervalidasi.
+
+	Implementasi Python digunakan sebagai baseline software. Baseline ini
+	menyediakan bobot, bias, keluaran antara, dan keluaran akhir yang menjadi
+	referensi bagi implementasi fixed-point dan Verilog. Dengan adanya baseline,
+	setiap perubahan nilai akibat kuantisasi, pembulatan, atau pembatasan lebar
+	bit dapat dibandingkan secara langsung terhadap model acuan. Hal ini penting
+	karena implementasi hardware tidak menyediakan fleksibilitas debugging sebesar
+	Python, sehingga referensi numerik harus disiapkan sebelum proses translasi ke
+	Verilog dilakukan.
+
+	Tahap ini juga menjadi dasar pemilihan arsitektur model yang sesuai dengan
+	keterbatasan FPGA. Model tidak dirancang terlalu besar karena seluruh operasi
+	inferensi harus dipetakan ke resource seperti DSP, LUT, FF, dan BRAM. Oleh
+	karena itu, implementasi Python tidak hanya bertujuan memperoleh model dengan
+	akurasi yang dapat diterima, tetapi juga memastikan bahwa ukuran model masih
+	layak untuk direalisasikan sebagai akselerator perangkat keras.
+
     \subsection{Implementasi Kuantisasi Fixed-Point}
-	Parameter hasil pelatihan dikonversi dari floating-point ke fixed-point 16-bit dengan fractional bit yang telah ditentukan. Proses ini dilakukan sebelum parameter dimasukkan ke file memori Verilog. Validasi kuantisasi dilakukan dengan membandingkan rentang nilai, jumlah saturasi, dan kesesuaian keluaran terhadap model Python.
+	Parameter hasil pelatihan dikonversi dari floating-point ke fixed-point 16-bit
+	dengan format Q2.14. Format ini menggunakan dua bit untuk bagian integer
+	termasuk bit tanda dan 14 bit untuk bagian fraksi. Tahap ini diperlukan karena
+	operasi floating-point membutuhkan rangkaian aritmetika yang lebih kompleks
+	dan dapat meningkatkan penggunaan resource FPGA. Sebaliknya, fixed-point lebih
+	sesuai untuk FPGA karena operasi perkalian dan akumulasi dapat dipetakan
+	secara lebih efisien ke DSP dan jalur data integer.
+
+	Kuantisasi dilakukan sebelum parameter dimasukkan ke file memori Verilog agar
+	format data yang digunakan pada simulasi hardware sama dengan format data yang
+	akan disintesis pada FPGA. Setiap bobot dan bias dikalikan dengan faktor skala
+	berdasarkan jumlah bit pecahan, dibulatkan ke integer terdekat, kemudian
+	dibatasi agar tetap berada pada rentang 16-bit bertanda. Proses pembatasan ini
+	penting untuk mencegah overflow pada penyimpanan parameter, sedangkan
+	pemilihan 14 bit fraksi bertujuan menjaga resolusi nilai pecahan agar
+	perubahan kecil pada bobot tidak hilang secara berlebihan. Alokasi dua bit
+	integer dinilai cukup karena hasil parameter model tidak keluar dari rentang
+	$-2$ sampai $2$, sehingga sisa bit dapat difokuskan untuk meningkatkan
+	ketelitian bagian fraksi.
+
+	Validasi kuantisasi dilakukan dengan membandingkan rentang nilai, jumlah
+	saturasi, dan kesesuaian keluaran terhadap model Python. Pemeriksaan saturasi
+	diperlukan karena parameter yang tersaturasi dapat berubah jauh dari nilai
+	aslinya dan berpotensi mengubah hasil inferensi. Dengan validasi ini, proses
+	kuantisasi tidak hanya menjadi tahap konversi format, tetapi juga tahap
+	pengendalian galat numerik sebelum model dijalankan pada Verilog.
+
     \subsection{Implementasi CNN ke Verilog}
-	Implementasi Verilog merealisasikan operasi konvolusi, ReLU, pooling, fully connected, dan argmax sebagai rangkaian perangkat keras. Blok komputasi menggunakan kombinasi MAC berbasis DSP, shift register, FIFO, FSM, dan mekanisme valid-ready. Setiap layer diuji terhadap keluaran Python agar perbedaan akibat kuantisasi dan lebar bit dapat diamati secara bertahap.
+	Implementasi Verilog merealisasikan operasi konvolusi, ReLU, pooling, fully
+	connected, dan argmax sebagai rangkaian perangkat keras. Tahap ini dilakukan
+	karena tujuan utama penelitian adalah menjalankan inferensi CNN sepenuhnya di
+	FPGA, bukan hanya mensimulasikan model di software. Dengan Verilog, operasi
+	CNN dapat dibentuk sebagai jalur data khusus yang memanfaatkan paralelisme,
+	pipeline, dan resource hardware secara langsung.
+
+	Blok komputasi menggunakan kombinasi MAC berbasis DSP, shift register, FIFO,
+	FSM, dan mekanisme valid-ready. MAC digunakan karena operasi dominan pada CNN
+	adalah perkalian dan akumulasi antara aktivasi dan bobot. Shift register dan
+	line buffer digunakan untuk membentuk window konvolusi tanpa membaca ulang
+	data dari memori utama. FIFO dan valid-ready digunakan untuk menjaga aliran
+	data antarblok yang memiliki waktu proses berbeda, sedangkan FSM mengatur
+	urutan komputasi, pemilihan channel, pemilihan bobot, dan pengiriman keluaran.
+
+	Implementasi dilakukan secara \emph{layer-by-layer} agar kesalahan dapat dilokalisasi.
+	Setiap layer diuji terhadap keluaran Python sebelum dihubungkan ke layer
+	berikutnya. Alasan pendekatan ini adalah galat pada layer awal dapat
+	terakumulasi dan sulit ditelusuri jika seluruh jaringan langsung diuji sebagai
+	satu blok penuh. Dengan pengujian bertahap, perbedaan akibat fixed-point,
+	pemotongan lebar bit, atau kesalahan urutan data dapat dianalisis pada titik
+	yang lebih spesifik.
+
     \subsection{Implementasi OV7670}
-	Implementasi OV7670 mencakup konfigurasi sensor, pembacaan sinyal sinkronisasi, dan penyusunan data piksel. Pengujian awal dilakukan untuk memastikan bahwa sinyal VSYNC, HREF, pixel clock, dan data paralel dapat diterima secara stabil sebelum data kamera dihubungkan ke jalur DDR.
+	Implementasi OV7670 mencakup konfigurasi sensor, pembacaan sinyal
+	sinkronisasi, dan penyusunan data piksel. Kamera harus dikonfigurasi terlebih
+	dahulu agar format keluaran, resolusi, dan mode operasi sesuai dengan
+	kebutuhan sistem. Tanpa konfigurasi yang benar, data yang diterima FPGA dapat
+	memiliki format warna, urutan byte, atau timing yang tidak sesuai dengan
+	rancangan frame buffer dan VGA.
+
+	Pembacaan data kamera dilakukan berdasarkan sinyal VSYNC, HREF, pixel clock,
+	dan bus data paralel. VSYNC digunakan untuk menandai awal atau akhir frame,
+	HREF menunjukkan validitas data pada satu baris, sedangkan pixel clock menjadi
+	acuan pengambilan data piksel. Implementasi ini diperlukan karena data kamera
+	masuk secara streaming dan tidak dapat dihentikan secara bebas seperti data
+	dari memori. Oleh karena itu, logika penerima harus mampu menangkap piksel
+	pada waktu yang tepat agar posisi piksel dalam frame tidak bergeser.
+
     \subsection{Implementasi VGA}
-	Implementasi VGA dilakukan dengan membangkitkan timing horizontal, timing vertikal, sinyal HSYNC, VSYNC, dan data warna RGB. Pengujian sanitasi menggunakan pola warna dilakukan untuk memastikan bahwa jalur tampilan bekerja sebelum digunakan untuk menampilkan data dari frame buffer.
+	Implementasi VGA dilakukan dengan membangkitkan timing horizontal, timing
+	vertikal, sinyal HSYNC, VSYNC, dan data warna RGB. Tahap ini diperlukan karena
+	VGA bekerja dengan timing yang tetap. Monitor hanya dapat menampilkan gambar
+	dengan benar apabila urutan piksel, periode aktif, periode blanking, dan
+	sinyal sinkronisasi sesuai dengan standar resolusi yang digunakan. Jika timing
+	tidak tepat, tampilan dapat bergeser, berkedip, atau tidak terbaca oleh monitor.
+
+	Pada penelitian ini, VGA berfungsi sebagai jalur observasi visual terhadap
+	sistem. Keluaran VGA memungkinkan hasil akuisisi kamera dan data dari frame
+	buffer diamati secara langsung tanpa harus selalu mengirim data kembali ke
+	komputer. Oleh karena itu, modul VGA harus divalidasi sebelum dihubungkan
+	dengan DDR, karena kegagalan tampilan dapat menyulitkan analisis apakah
+	kesalahan berasal dari jalur baca memori atau dari pembangkit sinyal VGA.
+
     \subsection{Implementasi DDR sebagai Frame Buffer}
-	DDR diimplementasikan sebagai frame buffer melalui MIG dan transaksi AXI. Jalur tulis menerima data dari kamera, sedangkan jalur baca menyediakan data untuk VGA dan ROI. Tahap ini penting karena kamera, CNN, dan VGA tidak selalu bekerja pada kebutuhan waktu yang sama.
+	DDR diimplementasikan sebagai frame buffer melalui MIG dan transaksi AXI.
+	Tahap ini diperlukan karena satu frame citra membutuhkan kapasitas penyimpanan
+	yang lebih besar dibandingkan buffer kecil yang idealnya ditempatkan pada BRAM.
+	BRAM lebih sesuai digunakan untuk FIFO, line buffer, dan data antara yang dekat
+	dengan blok komputasi, sedangkan DDR menyediakan ruang yang lebih besar untuk
+	menyimpan frame dari kamera.
+
+	Jalur tulis DDR menerima data dari kamera, sedangkan jalur baca menyediakan
+	data untuk VGA dan ROI. Pemisahan jalur tulis dan baca diperlukan karena kamera
+	menghasilkan data berdasarkan pixel clock, VGA membaca data berdasarkan timing
+	tampilan, dan CNN hanya membutuhkan area tertentu sebagai masukan ROI. Ketiga
+	bagian tersebut tidak selalu bekerja pada laju dan kebutuhan akses yang sama,
+	sehingga frame buffer digunakan sebagai penyangga antarproses.
+
+	Penggunaan MIG dan AXI dilakukan agar akses DDR dapat dikendalikan melalui
+	antarmuka yang terstruktur. MIG menangani inisialisasi, kalibrasi, dan detail
+	fisik DDR, sedangkan AXI digunakan untuk membentuk transaksi baca dan tulis.
+	Dengan pendekatan ini, rancangan logika dapat difokuskan pada pengaturan
+	alamat, validitas data, dan sinkronisasi aliran frame. Implementasi DDR sebagai
+	frame buffer menjadi tahap penting karena integrasi OV7670, VGA, dan CNN
+	membutuhkan sumber data yang stabil dan dapat diakses kembali sesuai kebutuhan
+	masing-masing subsistem.
 
 \section{Metode Integrasi}
     \subsection{Integrasi Model CNN ke FPGA}
@@ -357,9 +507,60 @@ risiko kesalahan integrasi perangkat keras.
     \subsection{Pengujian Perbedaan Hasil Python dan Verilog}
 	Pengujian ini membandingkan keluaran antara implementasi Python dan Verilog pada beberapa titik layer. Tujuannya adalah memastikan bahwa perbedaan numerik akibat fixed-point tetap terkontrol dan tidak mengubah keputusan kelas secara tidak terduga.
     \subsection{Pengujian Penggunaan Kapasitas FPGA}
-	Pengujian kapasitas FPGA dilakukan dari laporan implementasi Vivado. Parameter yang diamati meliputi LUT, FF, BRAM, dan DSP karena keempat resource tersebut menentukan kelayakan integrasi pada Arty A7-100T.
+	Pengujian kapasitas FPGA dilakukan dari laporan implementasi Vivado. Parameter
+	yang diamati meliputi LUT, FF, BRAM, dan DSP karena keempat resource tersebut
+	menentukan kelayakan integrasi pada Arty A7-100T. Pengujian ini tidak hanya
+	digunakan untuk mengetahui persentase penggunaan resource setelah desain
+	selesai, tetapi juga menjadi umpan balik terhadap strategi implementasi yang
+	dipakai selama proses perancangan.
+
+	Pada CNN accelerator, hasil penggunaan resource memengaruhi keputusan
+	pemotongan bit pada keluaran MAC. Hasil akumulasi MAC memiliki lebar bit yang
+	lebih besar dibandingkan operand masukan karena merupakan hasil perkalian dan
+	penjumlahan berulang. Jika seluruh lebar hasil akumulasi dipertahankan sampai
+	layer berikutnya, kebutuhan register, jalur data, FIFO, dan logika kontrol akan
+	meningkat. Oleh karena itu, pengujian resource digunakan untuk menentukan
+	apakah lebar bit hasil antara masih dapat dipertahankan atau perlu dipotong
+	pada titik tertentu agar desain tetap muat tanpa menghilangkan ketelitian yang
+	dibutuhkan secara berlebihan.
+
+	Pengujian kapasitas juga digunakan untuk mengevaluasi kedalaman FIFO. FIFO
+	diperlukan untuk menahan perbedaan laju data antarblok, tetapi kedalaman FIFO
+	yang terlalu besar akan meningkatkan penggunaan BRAM atau LUT. Sebaliknya,
+	FIFO yang terlalu dangkal dapat menyebabkan aliran data mudah tertahan ketika
+	blok berikutnya belum siap menerima data. Oleh karena itu, kedalaman FIFO
+	ditentukan dengan mempertimbangkan kebutuhan buffering dan batas resource
+	yang tersedia pada FPGA.
+
+	Selain pada CNN accelerator, pengujian resource memengaruhi implementasi
+	algoritma resizing image dan konversi grayscale. Proses resizing dari frame
+	kamera menuju ROI berukuran $28 \times 28$ piksel harus dibuat ringan agar
+	tidak menambah beban komputasi dan memori yang besar. Demikian pula, konversi
+	grayscale perlu diimplementasikan dengan operasi aritmetika sederhana agar
+	tidak menggunakan DSP secara berlebihan. Dengan demikian, pengujian kapasitas
+	FPGA menjadi dasar untuk menyeimbangkan kebutuhan akurasi numerik, kestabilan
+	aliran data, dan kelayakan integrasi seluruh subsistem pada satu board FPGA.
     \subsection{Pengujian Sanitasi Kamera}
 	Pengujian sanitasi kamera dilakukan sebelum integrasi untuk memastikan kamera menghasilkan sinyal dan data yang valid. Tahap ini penting karena kesalahan pada akuisisi citra akan memengaruhi frame buffer, ROI, dan keluaran CNN.
+
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.85\textwidth]{gambar/rgb-565-signal.png}
+		\caption{Timing keluaran data RGB565 pada kamera OV7670}
+		\label{fig:rgb-565-signal}
+	\end{figure}
+
+	Gambar~\ref{fig:rgb-565-signal} menunjukkan urutan sinyal keluaran kamera
+	OV7670 ketika menggunakan format RGB565. Pada format ini, satu piksel warna
+	direpresentasikan dalam 16 bit, sehingga data piksel dikirim melalui dua
+	tahap byte secara berurutan pada jalur data paralel kamera. Sinyal PCLK
+	digunakan sebagai acuan pengambilan data, sedangkan HREF menunjukkan bahwa
+	data pada baris citra sedang valid. Pola timing ini menjadi dasar pengujian
+	sanitasi kamera karena logika penerima harus mengambil byte pada siklus yang
+	tepat agar pasangan data RGB565 tidak tertukar atau bergeser. Gambar tersebut
+	diadaptasi dari datasheet OV7670 yang menjelaskan hubungan antara PCLK, HREF,
+	dan keluaran data piksel pada mode RGB565 \cite{OmniVision2006OV7670}.
+
     \subsection{Pengujian Sanitasi VGA}
 	Pengujian sanitasi VGA dilakukan menggunakan pola warna sederhana. Pola ini membantu memastikan bahwa timing VGA dan jalur RGB bekerja secara benar sebelum tampilan dihubungkan dengan data yang berasal dari DDR.
 	\begin{lstlisting}[language=Verilog, title={Kode Sanitasi VGA Verilog}, label={code:verilog-sanitize}]
@@ -389,11 +590,123 @@ endcase
 
 \section{Metode Evaluasi}
     \subsection{Evaluasi Akurasi}
-	Evaluasi akurasi digunakan untuk menilai kesesuaian hasil klasifikasi terhadap label data uji dan sebagai pembanding antara baseline software dan implementasi hardware.
+	Evaluasi akurasi digunakan untuk menilai kesesuaian hasil klasifikasi terhadap
+	label data uji dan sebagai pembanding antara baseline software dan implementasi
+	hardware. Pada penelitian ini, evaluasi akurasi tidak hanya dinyatakan dalam
+	bentuk nilai akurasi keseluruhan, tetapi juga dianalisis menggunakan
+	\emph{confusion matrix}.
+
+	\emph{Confusion matrix} digunakan karena mampu menunjukkan hubungan antara
+	label sebenarnya dan label hasil prediksi untuk setiap kelas digit. Nilai pada
+	diagonal utama menunjukkan jumlah data yang diklasifikasikan dengan benar,
+	sedangkan nilai di luar diagonal menunjukkan kesalahan klasifikasi antar kelas.
+	Dengan cara ini, evaluasi tidak hanya menjawab apakah model benar atau salah
+	secara umum, tetapi juga menunjukkan kelas digit mana yang lebih sering tertukar
+	dengan kelas lain.
+
+	Penggunaan \emph{confusion matrix} penting pada penelitian ini karena model CNN
+	diimplementasikan kembali dari Python ke Verilog dengan representasi
+	fixed-point. Jika terjadi penurunan akurasi atau perubahan hasil prediksi,
+	\emph{confusion matrix} dapat membantu melihat apakah perubahan tersebut
+	terjadi merata pada seluruh kelas atau hanya dominan pada kelas tertentu.
+	Analisis ini digunakan untuk menilai apakah hasil inferensi hardware masih
+	konsisten terhadap baseline model Python.
     \subsection{Evaluasi Perbedaan Bit}
-	Evaluasi perbedaan bit digunakan untuk melihat dampak representasi fixed-point terhadap nilai antara pada setiap blok CNN. Evaluasi ini penting karena kesalahan kecil pada layer awal dapat terakumulasi pada layer berikutnya.
+	Evaluasi perbedaan bit digunakan untuk melihat dampak representasi fixed-point
+	terhadap nilai antara pada setiap blok CNN. Evaluasi ini penting karena
+	kesalahan kecil pada layer awal dapat terakumulasi pada layer berikutnya.
+	Pada penelitian ini, keluaran antara dari implementasi Verilog dibandingkan
+	dengan keluaran baseline Python yang sudah dikonversi ke format fixed-point.
+	Dengan demikian, pembandingan tidak dilakukan langsung antara nilai
+	\emph{floating-point} dan nilai hardware, tetapi melalui representasi integer
+	fixed-point yang sama.
+
+	Pembacaan hasil dari Verilog memerlukan proses \emph{sign extension} karena
+	data yang ditangkap dari simulasi atau hasil dump hardware dapat terbaca
+	sebagai unsigned integer, padahal nilai aktivasi atau hasil akumulasi
+	menggunakan representasi two's complement bertanda. Oleh karena itu, nilai
+	unsigned perlu dikembalikan menjadi signed integer berdasarkan lebar bit yang
+	digunakan pada masing-masing blok. Selain itu, keluaran Python juga dikonversi
+	ke fixed-point dengan jumlah bit fraksi yang sama, yaitu $F=14$, agar
+	perbandingan bit dilakukan pada skala numerik yang setara.
+
+	Potongan kode yang digunakan untuk proses evaluasi tersebut ditunjukkan pada
+	Listing~\ref{code:bit-difference-eval}. Fungsi \texttt{sign\_extend}
+	digunakan untuk mengubah data unsigned two's complement menjadi signed integer
+	sesuai lebar bit tertentu, sedangkan fungsi \texttt{python\_float\_to\_fixed}
+	digunakan untuk mengubah keluaran \emph{floating-point} Python menjadi integer
+	fixed-point. Mode pembulatan digunakan agar proses konversi mengikuti prinsip
+	kuantisasi parameter yang digunakan pada implementasi model.
+
+	\begin{lstlisting}[language=Python, title={Kode evaluasi perbedaan bit Python dan Verilog}, label={code:bit-difference-eval}]
+def sign_extend(arr, bit_width):
+    """
+    Untuk mengubah unsigned two's complement menjadi signed integer.
+    Contoh kalau ACT_SIZE = 24, maka bit_width = 24.
+    """
+    arr = arr.astype(np.int64)
+
+    if bit_width is None:
+        return arr
+
+    sign_bit = 1 << (bit_width - 1)
+    full_range = 1 << bit_width
+
+    return np.where(arr >= sign_bit, arr - full_range, arr)
+
+
+def python_float_to_fixed(arr, frac_bits=14, mode="round"):
+    """
+    Convert float Python ke fixed-point integer.
+    """
+    scale = 1 << frac_bits
+    scaled = arr * scale
+
+    if mode == "round":
+        return np.round(scaled).astype(np.int64)
+
+    elif mode == "trunc":
+        return np.trunc(scaled).astype(np.int64)
+
+    elif mode == "floor":
+        return np.floor(scaled).astype(np.int64)
+
+    else:
+        raise ValueError("mode harus 'round', 'trunc', atau 'floor'")
+	\end{lstlisting}
+
     \subsection{Evaluasi Latensi Inferensi}
-	Evaluasi latensi inferensi dihitung berdasarkan jumlah siklus clock yang diperlukan sampai keluaran CNN tersedia. Nilai ini digunakan untuk menilai kemampuan sistem terhadap kebutuhan real-time.
+	Evaluasi latensi inferensi dihitung berdasarkan jumlah siklus clock yang diperlukan sejak data masukan mulai diproses oleh blok CNN sampai keluaran klasifikasi tersedia. Pengukuran ini dilakukan karena sistem tidak hanya harus menghasilkan prediksi yang benar, tetapi juga harus mampu menghasilkan keluaran dalam batas waktu yang sesuai dengan kebutuhan \emph{real-time}. Pada implementasi sinkron di FPGA, waktu eksekusi lebih tepat dinyatakan berdasarkan jumlah siklus clock karena setiap tahap komputasi, pembacaan FIFO, operasi MAC, dan propagasi antarblok dikendalikan oleh sinyal clock.
+
+	Latensi inferensi dihitung menggunakan Persamaan~\ref{eq:latensi-inferensi}. Nilai $N_{cycle}$ menyatakan jumlah siklus clock yang dibutuhkan untuk menyelesaikan satu proses inferensi, sedangkan $f_{clk}$ menyatakan frekuensi kerja clock sistem dalam satuan Hz.
+
+	\begin{equation}
+		T_{latency} = \frac{N_{cycle}}{f_{clk}}
+		\label{eq:latensi-inferensi}
+	\end{equation}
+
+	Jika frekuensi clock dinyatakan dalam MHz, maka latensi dalam mikrodetik dapat dihitung menggunakan Persamaan~\ref{eq:latensi-inferensi-us}. Persamaan ini digunakan untuk memudahkan interpretasi hasil pengujian karena nilai latensi inferensi pada FPGA umumnya berada pada orde mikrodetik hingga milidetik.
+
+	\begin{equation}
+		T_{latency}(\mu s) = \frac{N_{cycle}}{f_{clk}(\text{MHz})}
+		\label{eq:latensi-inferensi-us}
+	\end{equation}
+
+	Throughput dihitung sebagai jumlah inferensi yang dapat diselesaikan dalam satu detik. Untuk satu jalur inferensi tanpa pemrosesan paralel antar citra, throughput dapat diperoleh dari kebalikan latensi seperti ditunjukkan pada Persamaan~\ref{eq:throughput-inferensi}. Dengan demikian, semakin kecil jumlah siklus inferensi atau semakin tinggi frekuensi clock yang digunakan, semakin besar throughput yang dapat dicapai oleh akselerator.
+
+	\begin{equation}
+		Throughput = \frac{1}{T_{latency}} = \frac{f_{clk}}{N_{cycle}}
+		\label{eq:throughput-inferensi}
+	\end{equation}
+
+	Apabila pengujian dilakukan untuk beberapa citra uji, throughput rata-rata dihitung menggunakan Persamaan~\ref{eq:throughput-rata-rata}. Nilai $N_{image}$ menyatakan jumlah citra yang diuji, sedangkan $T_{total}$ menyatakan total waktu yang dibutuhkan untuk menyelesaikan seluruh proses inferensi.
+
+	\begin{equation}
+		Throughput_{avg} = \frac{N_{image}}{T_{total}}
+		\label{eq:throughput-rata-rata}
+	\end{equation}
+
+	Hasil latensi dan throughput kemudian digunakan untuk menilai apakah strategi implementasi yang dipilih, seperti pemotongan bit hasil MAC, penggunaan FIFO, dan algoritma prapemrosesan citra, masih memenuhi kebutuhan kecepatan sistem secara keseluruhan.
     \subsection{Evaluasi Penggunaan Resource FPGA}
 	Evaluasi resource FPGA menilai penggunaan LUT, FF, BRAM, dan DSP pada CNN accelerator maupun sistem terintegrasi. Hasilnya digunakan untuk menganalisis trade-off antara paralelisme, time multiplexing, dan kelayakan implementasi.
     \subsection{Evaluasi Daya}
