@@ -4,9 +4,9 @@
 	Alat dan bahan yang digunakan pada penelitian ini terbagi atas perangkat keras dan perangkat lunak yang akan dijelaskan seperti berikut.
 
 	\subsection{Perangkat Keras}
-	Perangkat keras terdiri dari sebuah FPGA board yang digunakan sebagai 
-	media inferensi model CNN serta sejumlah pheripheral meida untuk 
-	melakukan \emph{streaming meida} untuk pengambilan data. Detail mengenai 
+	Perangkat keras terdiri dari sebuah FPGA board yang digunakan sebagai
+	media inferensi model CNN serta sejumlah pheripheral meida untuk
+	melakukan \emph{streaming meida} untuk pengambilan data. Detail mengenai
 	perangkat keras yang digunakan terdapat pada daftar berikut.
 
 		\vspace{-0.5cm}
@@ -23,8 +23,8 @@
 		\end{enumerate}
 
 	\subsection{Perangkat Lunak}
-	Perangkat lunak yang digunakan selama proses pengembangan mencakup 
-	lingkungan kerja dan lingkungan uji. Detail mengenai perangkat 
+	Perangkat lunak yang digunakan selama proses pengembangan mencakup
+	lingkungan kerja dan lingkungan uji. Detail mengenai perangkat
 	lunak yang digunakan terdapat pada daftar berikut.
 
 		\vspace{-0.5cm}
@@ -49,59 +49,59 @@
 		\caption{Rancangan Umum Sistem}
 		\label{fig:rancangan-umum-sistem}
 	\end{figure}
-	DDR SDRAM digunakan sebagai \emph{frame buffer} agar 
-	data citra dari kamera dan data yang akan ditampilkan 
-	ke VGA dapat dipisahkan secara lebih stabil. Jalur 
-	kamera, DDR, dan VGA berperan sebagai sistem akuisisi 
-	dan tampilan citra, sedangkan jalur ROI dan CNN 
-	berperan sebagai sistem klasifikasi. Pemisahan ini 
-	dilakukan agar proses inferensi CNN tidak harus 
-	dilakukan pada seluruh frame, melainkan hanya pada 
-	area tertentu yang dianggap relevan. Dengan demikian, 
-	beban komputasi dapat dikurangi tanpa menghilangkan 
-	fungsi utama sistem sebagai sistem klasifikasi citra 
+	DDR SDRAM digunakan sebagai \emph{frame buffer} agar
+	data citra dari kamera dan data yang akan ditampilkan
+	ke VGA dapat dipisahkan secara lebih stabil. Jalur
+	kamera, DDR, dan VGA berperan sebagai sistem akuisisi
+	dan tampilan citra, sedangkan jalur ROI dan CNN
+	berperan sebagai sistem klasifikasi. Pemisahan ini
+	dilakukan agar proses inferensi CNN tidak harus
+	dilakukan pada seluruh frame, melainkan hanya pada
+	area tertentu yang dianggap relevan. Dengan demikian,
+	beban komputasi dapat dikurangi tanpa menghilangkan
+	fungsi utama sistem sebagai sistem klasifikasi citra
 	berbasis FPGA.
 
     \subsection{Rancangan Arsitektur CNN}
-	Arsitektur CNN yang digunakan pada penelitian ini 
-	dirancang sebagai model klasifikasi citra berukuran 
-	kecil agar sesuai dengan keterbatasan sumber daya 
-	pada FPGA. Input model berupa citra grayscale 
-	berukuran $28 \times 28$ piksel yang diperoleh dari 
-	hasil pemrosesan ROI. Model CNN dikembangkan 
-	terlebih dahulu menggunakan Python sebagai model 
-	acuan sebelum parameter bobot dan biasnya dipindahkan 
-	ke implementasi Verilog. Penggunaan CNN dipilih 
-	karena metode ini mampu mengekstraksi fitur citra 
-	secara bertahap melalui operasi konvolusi, aktivasi, 
+	Arsitektur CNN yang digunakan pada penelitian ini
+	dirancang sebagai model klasifikasi citra berukuran
+	kecil agar sesuai dengan keterbatasan sumber daya
+	pada FPGA. Input model berupa citra grayscale
+	berukuran $28 \times 28$ piksel yang diperoleh dari
+	hasil pemrosesan ROI. Model CNN dikembangkan
+	terlebih dahulu menggunakan Python sebagai model
+	acuan sebelum parameter bobot dan biasnya dipindahkan
+	ke implementasi Verilog. Penggunaan CNN dipilih
+	karena metode ini mampu mengekstraksi fitur citra
+	secara bertahap melalui operasi konvolusi, aktivasi,
 	dan pooling \cite{Goodfellow2016DeepLearning, Lecun1998GradientBasedLearning}.
 
-	Secara umum, model terdiri dari tiga blok konvolusi 
-	dan dua lapisan \emph{fully connected}. Blok pertama 
-	menerima satu kanal input dan menghasilkan 8 kanal 
-	fitur. Blok kedua menghasilkan 16 kanal fitur, 
-	sedangkan blok ketiga menghasilkan 32 kanal fitur. 
-	Setiap blok konvolusi menggunakan kernel $3 \times 3$ 
-	yang diikuti oleh fungsi aktivasi ReLU dan proses 
-	\emph{max pooling}. Setelah tahap ekstraksi fitur 
-	selesai, hasil akhir diproses oleh lapisan 
-	\emph{fully connected} untuk menghasilkan 10 nilai 
-	keluaran yang merepresentasikan kelas prediksi. 
-	Pada implementasi hardware, tahap \emph{softmax} 
-	tidak digunakan karena proses klasifikasi cukup 
-	dilakukan dengan membandingkan nilai keluaran 
+	Secara umum, model terdiri dari tiga blok konvolusi
+	dan dua lapisan \emph{fully connected}. Blok pertama
+	menerima satu kanal input dan menghasilkan 8 kanal
+	fitur. Blok kedua menghasilkan 16 kanal fitur,
+	sedangkan blok ketiga menghasilkan 32 kanal fitur.
+	Setiap blok konvolusi menggunakan kernel $3 \times 3$
+	yang diikuti oleh fungsi aktivasi ReLU dan proses
+	\emph{max pooling}. Setelah tahap ekstraksi fitur
+	selesai, hasil akhir diproses oleh lapisan
+	\emph{fully connected} untuk menghasilkan 10 nilai
+	keluaran yang merepresentasikan kelas prediksi.
+	Pada implementasi hardware, tahap \emph{softmax}
+	tidak digunakan karena proses klasifikasi cukup
+	dilakukan dengan membandingkan nilai keluaran
 	terbesar menggunakan \emph{argmax}.
 
-	Arsitektur ini dipilih karena memiliki jumlah 
-	parameter yang relatif kecil, tetapi tetap mampu 
-	merepresentasikan proses ekstraksi fitur CNN secara 
-	bertingkat. Selain itu, ukuran model yang tidak 
-	terlalu besar membuatnya lebih memungkinkan untuk 
-	diimplementasikan pada FPGA dengan komputasi 
-	\emph{fixed-point}. Parameter model berupa bobot 
-	dan bias disimpan sebagai data konstan pada memori 
-	internal, sehingga proses inferensi dapat dilakukan 
-	secara langsung oleh rangkaian hardware tanpa 
+	Arsitektur ini dipilih karena memiliki jumlah
+	parameter yang relatif kecil, tetapi tetap mampu
+	merepresentasikan proses ekstraksi fitur CNN secara
+	bertingkat. Selain itu, ukuran model yang tidak
+	terlalu besar membuatnya lebih memungkinkan untuk
+	diimplementasikan pada FPGA dengan komputasi
+	\emph{fixed-point}. Parameter model berupa bobot
+	dan bias disimpan sebagai data konstan pada memori
+	internal, sehingga proses inferensi dapat dilakukan
+	secara langsung oleh rangkaian hardware tanpa
 	memerlukan proses pelatihan ulang di dalam FPGA.
 
     \subsection{Rancangan Representasi Fixed-Point}
@@ -139,7 +139,7 @@
 	\end{equation}
 
 	\begin{equation}
-	\hat{x}{16} = q{16} \cdot 2^{-F}
+	\hat{x}_{16} = q_{16} \cdot 2^{-F}
 	\label{eq:fixed-point-2}
 	\end{equation}
 
@@ -166,7 +166,7 @@
 	Kode translasi tersebut pada dasarnya melakukan tiga tahap utama, yaitu mengalikan
 	nilai parameter dengan $2^F$, membulatkan hasilnya ke bilangan integer, kemudian
 	membatasi nilai agar tetap berada pada rentang 16-bit bertanda. Hasil konversi
-	selanjutnya disimpan ke dalam file memori seperti \texttt{conv1\_w.mem}, 
+	selanjutnya disimpan ke dalam file memori seperti \texttt{conv1\_w.mem},
 	\texttt{conv1\_b.mem}, \texttt{conv2\_w.mem}, \texttt{conv2\_b.mem}, dan file
 	parameter lain yang digunakan oleh modul Verilog. Dengan cara ini, parameter yang
 	digunakan pada simulasi Python dan implementasi Verilog tetap berasal dari model
@@ -175,19 +175,19 @@
 
 	\subsection{Rancangan Akselerator CNN pada FPGA}
 
-	Akselerator CNN pada FPGA dirancang untuk menjalankan proses 
-	inferensi secara langsung pada hardware. Operasi utama pada 
-	CNN adalah konvolusi, yaitu proses perkalian antara data input 
-	dengan bobot kernel yang kemudian dijumlahkan. Oleh karena itu, 
-	bagian utama dari akselerator CNN direalisasikan menggunakan 
-	struktur \emph{multiply accumulate} (MAC). Operasi MAC dipetakan 
-	ke DSP pada FPGA karena DSP lebih sesuai untuk menjalankan 
-	operasi perkalian dan akumulasi dibandingkan apabila seluruh 
-	operasi dilakukan menggunakan LUT. Namun, karena jumlah DSP 
-	pada FPGA terbatas, rancangan akselerator tidak dibuat paralel 
-	penuh, melainkan menggunakan kombinasi paralelisme dan 
-	\emph{time multiplexing} \cite{Xilinx2018DSP48E1, Yan2022ResourceMultiplexingCNN}. 
-	Target pemetaan resource pada masing-masing bagian CNN 
+	Akselerator CNN pada FPGA dirancang untuk menjalankan proses
+	inferensi secara langsung pada hardware. Operasi utama pada
+	CNN adalah konvolusi, yaitu proses perkalian antara data input
+	dengan bobot kernel yang kemudian dijumlahkan. Oleh karena itu,
+	bagian utama dari akselerator CNN direalisasikan menggunakan
+	struktur \emph{multiply accumulate} (MAC). Operasi MAC dipetakan
+	ke DSP pada FPGA karena DSP lebih sesuai untuk menjalankan
+	operasi perkalian dan akumulasi dibandingkan apabila seluruh
+	operasi dilakukan menggunakan LUT. Namun, karena jumlah DSP
+	pada FPGA terbatas, rancangan akselerator tidak dibuat paralel
+	penuh, melainkan menggunakan kombinasi paralelisme dan
+	\emph{time multiplexing} \cite{Xilinx2018DSP48E1, Yan2022ResourceMultiplexingCNN}.
+	Target pemetaan resource pada masing-masing bagian CNN
 	ditunjukkan pada Tabel~\ref{tab:target_resource}.
 
 	\begin{table}[H]
@@ -205,119 +205,163 @@
 		\end{tabular}
 	\end{table}
 
-	Pada rancangan ini, blok konvolusi pertama dibuat lebih 
-	paralel karena jumlah kanal input dan output masih kecil. 
-	Sementara itu, blok konvolusi kedua dan ketiga menggunakan 
-	\emph{time multiplexing} agar jumlah DSP yang digunakan 
-	tetap dapat dikendalikan. Conv2 menghitung beberapa output 
-	\emph{channel} secara bergantian menggunakan kelompok MAC 
-	yang sama. Conv3 juga menggunakan pendekatan serupa, tetapi 
-	kanal input dibagi menjadi dua kelompok sehingga satu 
-	kelompok MAC dapat dipakai ulang untuk menyelesaikan seluruh 
-	output \emph{channel}. Strategi ini membuat jumlah DSP yang 
-	digunakan lebih rendah dibandingkan implementasi paralel 
-	penuh, walaupun membutuhkan jumlah siklus yang lebih banyak 
-	untuk menyelesaikan satu keluaran fitur. Pendekatan ini 
-	sejalan dengan konsep \emph{folding} pada akselerator CNN 
-	FPGA, yaitu penggunaan resource komputasi yang lebih sedikit 
-	untuk menjalankan operasi yang lebih besar secara bergantian 
+	Pada rancangan ini, blok konvolusi pertama dibuat lebih
+	paralel karena jumlah kanal input dan output masih kecil.
+	Sementara itu, blok konvolusi kedua dan ketiga menggunakan
+	\emph{time multiplexing} agar jumlah DSP yang digunakan
+	tetap dapat dikendalikan. Conv2 menghitung beberapa output
+	\emph{channel} secara bergantian menggunakan kelompok MAC
+	yang sama. Conv3 juga menggunakan pendekatan serupa, tetapi
+	kanal input dibagi menjadi dua kelompok sehingga satu
+	kelompok MAC dapat dipakai ulang untuk menyelesaikan seluruh
+	output \emph{channel}. Strategi ini membuat jumlah DSP yang
+	digunakan lebih rendah dibandingkan implementasi paralel
+	penuh, walaupun membutuhkan jumlah siklus yang lebih banyak
+	untuk menyelesaikan satu keluaran fitur. Pendekatan ini
+	sejalan dengan konsep \emph{folding} pada akselerator CNN
+	FPGA, yaitu penggunaan resource komputasi yang lebih sedikit
+	untuk menjalankan operasi yang lebih besar secara bergantian
 	\cite{Umuroglu2017FINN}.
 
-	Selain MAC, bagian penting dari akselerator CNN adalah 
-	pembentukan window konvolusi. Karena operasi konvolusi 
-	$3 \times 3$ membutuhkan sekumpulan data piksel atau fitur 
-	yang berdekatan, maka digunakan \emph{shift register} dan 
-	\emph{line buffer} untuk membentuk window tersebut. Data 
-	input tidak dibaca ulang dari awal untuk setiap operasi 
-	konvolusi, tetapi digeser secara berurutan sehingga window 
-	baru dapat terbentuk dari data yang sudah tersimpan pada 
-	buffer baris sebelumnya. Penggunaan \emph{shift register} 
-	dan \emph{line buffer} ini membantu mengurangi kebutuhan 
-	akses memori dan membuat proses konvolusi lebih sesuai 
-	dengan aliran data streaming pada FPGA. Pendekatan serupa 
-	juga digunakan pada beberapa akselerator CNN berbasis FPGA, 
-	seperti FINN melalui \emph{Sliding Window Unit} dan 
-	AoCStream melalui arsitektur \emph{stream-based line-buffer} 
+	Selain MAC, bagian penting dari akselerator CNN adalah
+	pembentukan window konvolusi. Karena operasi konvolusi
+	$3 \times 3$ membutuhkan sekumpulan data piksel atau fitur
+	yang berdekatan, maka digunakan \emph{shift register} dan
+	\emph{line buffer} untuk membentuk window tersebut. Data
+	input tidak dibaca ulang dari awal untuk setiap operasi
+	konvolusi, tetapi digeser secara berurutan sehingga window
+	baru dapat terbentuk dari data yang sudah tersimpan pada
+	buffer baris sebelumnya. Penggunaan \emph{shift register}
+	dan \emph{line buffer} ini membantu mengurangi kebutuhan
+	akses memori dan membuat proses konvolusi lebih sesuai
+	dengan aliran data streaming pada FPGA. Pendekatan serupa
+	juga digunakan pada beberapa akselerator CNN berbasis FPGA,
+	seperti FINN melalui \emph{Sliding Window Unit} dan
+	AoCStream melalui arsitektur \emph{stream-based line-buffer}
 	\cite{Umuroglu2017FINN, Kang2023AoCStream}.
 
-	Setiap blok CNN dikendalikan menggunakan \emph{finite state machine} 
-	(FSM) \cite{Wakerly2005DigitalDesign}. FSM digunakan untuk mengatur 
-	urutan kerja pada masing-masing blok, seperti menunggu data masuk, 
-	menjalankan proses komputasi, mengumpulkan hasil perhitungan, dan 
-	mengirimkan data ke blok berikutnya. Pada blok yang menggunakan 
-	\emph{time multiplexing}, FSM berperan penting karena satu unit 
-	komputasi digunakan secara bergantian untuk beberapa \emph{channel}. 
-	Dengan demikian, FSM memastikan bahwa proses pengambilan data, 
-	pemilihan bobot, akumulasi hasil, dan pengiriman output dilakukan 
+	Setiap blok CNN dikendalikan menggunakan \emph{finite state machine}
+	(FSM) \cite{Wakerly2005DigitalDesign}. FSM digunakan untuk mengatur
+	urutan kerja pada masing-masing blok, seperti menunggu data masuk,
+	menjalankan proses komputasi, mengumpulkan hasil perhitungan, dan
+	mengirimkan data ke blok berikutnya. Pada blok yang menggunakan
+	\emph{time multiplexing}, FSM berperan penting karena satu unit
+	komputasi digunakan secara bergantian untuk beberapa \emph{channel}.
+	Dengan demikian, FSM memastikan bahwa proses pengambilan data,
+	pemilihan bobot, akumulasi hasil, dan pengiriman output dilakukan
 	pada urutan yang benar \cite{Harris2021DigitalDesign}.
 
-	Untuk menjaga kestabilan aliran data antarblok, rancangan 
-	akselerator menggunakan FIFO dan mekanisme \emph{valid-ready}. 
-	FIFO digunakan sebagai penyangga antara blok yang memiliki kecepatan 
-	proses berbeda. Hal ini diperlukan karena tidak semua blok CNN 
-	menghasilkan data pada jumlah siklus yang sama. Misalnya, blok 
-	konvolusi yang menggunakan \emph{time multiplexing} membutuhkan 
-	waktu lebih lama dibandingkan blok pooling atau blok komparator 
-	\cite{Kim2017ThreadedCNNFIFO}. Dengan adanya FIFO, blok sebelumnya 
-	tetap dapat mengirim data selama FIFO belum penuh, sedangkan blok 
-	berikutnya dapat mengambil data ketika sudah siap. Mekanisme FIFO 
-	seperti ini umum digunakan pada desain hardware berbasis aliran data 
-	untuk memisahkan proses produksi dan konsumsi data \cite{Cummings2002AsyncFIFO}. 
-	Aliran data dengan mekanisme \emph{valid-ready} ditunjukkan pada 
+	Untuk menjaga kestabilan aliran data antarblok, rancangan
+	akselerator menggunakan FIFO dan mekanisme \emph{valid-ready}.
+	FIFO digunakan sebagai penyangga antara blok yang memiliki kecepatan
+	proses berbeda. Hal ini diperlukan karena tidak semua blok CNN
+	menghasilkan data pada jumlah siklus yang sama. Misalnya, blok
+	konvolusi yang menggunakan \emph{time multiplexing} membutuhkan
+	waktu lebih lama dibandingkan blok pooling atau blok komparator
+	\cite{Kim2017ThreadedCNNFIFO}. Dengan adanya FIFO, blok sebelumnya
+	tetap dapat mengirim data selama FIFO belum penuh, sedangkan blok
+	berikutnya dapat mengambil data ketika sudah siap. Mekanisme FIFO
+	seperti ini umum digunakan pada desain hardware berbasis aliran data
+	untuk memisahkan proses produksi dan konsumsi data \cite{Cummings2002AsyncFIFO}.
+	Aliran data dengan mekanisme \emph{valid-ready} ditunjukkan pada
 	Gambar~\ref{fig:valid-ready-cnn}.
 
-	Mekanisme \emph{valid-ready} digunakan sebagai bentuk \emph{backpressure}. 
-	Sinyal \emph{valid} menunjukkan bahwa data dari blok sebelumnya sudah 
-	tersedia, sedangkan sinyal \emph{ready} menunjukkan bahwa blok berikutnya 
-	siap menerima data. Perpindahan data hanya terjadi ketika kedua sinyal 
-	tersebut aktif secara bersamaan. Dengan cara ini, counter, 
-	\emph{shift register}, FIFO, dan FSM hanya bergerak ketika data 
-	benar-benar berhasil diterima oleh blok berikutnya. Hal ini mencegah 
-	terjadinya kehilangan data atau pergeseran urutan fitur ketika salah 
+	Mekanisme \emph{valid-ready} digunakan sebagai bentuk \emph{backpressure}.
+	Sinyal \emph{valid} menunjukkan bahwa data dari blok sebelumnya sudah
+	tersedia, sedangkan sinyal \emph{ready} menunjukkan bahwa blok berikutnya
+	siap menerima data. Perpindahan data hanya terjadi ketika kedua sinyal
+	tersebut aktif secara bersamaan. Dengan cara ini, counter,
+	\emph{shift register}, FIFO, dan FSM hanya bergerak ketika data
+	benar-benar berhasil diterima oleh blok berikutnya. Hal ini mencegah
+	terjadinya kehilangan data atau pergeseran urutan fitur ketika salah
 	satu blok sedang sibuk.
 
-	Data antarblok pada rancangan ini tetap menggunakan bus yang cukup 
-	lebar untuk menjaga hasil antara dari proses \emph{fixed-point}. 
-	Namun, sebelum data aktivasi masuk ke operasi MAC pada layer 
-	berikutnya, lebar aktivasi dibatasi agar operasi perkalian antara 
-	aktivasi dan bobot 16-bit tetap efisien pada DSP. Dengan demikian, 
-	hasil akumulasi MAC tetap memiliki lebar bit yang cukup besar untuk 
-	menjaga ketelitian, tetapi operand utama yang masuk ke multiplier 
+	Data antarblok pada rancangan ini tetap menggunakan bus yang cukup
+	lebar untuk menjaga hasil antara dari proses \emph{fixed-point}.
+	Namun, sebelum data aktivasi masuk ke operasi MAC pada layer
+	berikutnya, lebar aktivasi dibatasi agar operasi perkalian antara
+	aktivasi dan bobot 16-bit tetap efisien pada DSP. Dengan demikian,
+	hasil akumulasi MAC tetap memiliki lebar bit yang cukup besar untuk
+	menjaga ketelitian, tetapi operand utama yang masuk ke multiplier
 	tetap berada pada ukuran yang sesuai dengan karakteristik DSP FPGA.
 
-	Secara keseluruhan, akselerator CNN dirancang sebagai rangkaian 
-	streaming yang terdiri dari beberapa blok utama, yaitu pembentuk 
-	window berbasis \emph{shift register}, unit MAC berbasis DSP, FSM 
-	pengendali, FIFO antarblok, serta mekanisme \emph{valid-ready}. 
-	Kombinasi ini membuat model CNN dapat dijalankan pada FPGA dengan 
-	menyesuaikan antara kebutuhan komputasi, keterbatasan resource, dan 
-	kestabilan aliran data. Penggunaan resource yang tinggi, 
-	terutama pada DSP, masih dapat diterima selama rancangan memenuhi 
-	timing dan menghasilkan keluaran inferensi yang sesuai dengan model 
+	Secara keseluruhan, akselerator CNN dirancang sebagai rangkaian
+	streaming yang terdiri dari beberapa blok utama, yaitu pembentuk
+	window berbasis \emph{shift register}, unit MAC berbasis DSP, FSM
+	pengendali, FIFO antarblok, serta mekanisme \emph{valid-ready}.
+	Kombinasi ini membuat model CNN dapat dijalankan pada FPGA dengan
+	menyesuaikan antara kebutuhan komputasi, keterbatasan resource, dan
+	kestabilan aliran data. Penggunaan resource yang tinggi,
+	terutama pada DSP, masih dapat diterima selama rancangan memenuhi
+	timing dan menghasilkan keluaran inferensi yang sesuai dengan model
 	acuan.
 
     \subsection{Rancangan Sistem Kamera, DDR, dan VGA}
+	Rancangan subsistem kamera, DDR, dan VGA dibuat sebagai jalur akuisisi dan
+	tampilan citra yang terpisah dari jalur komputasi CNN, tetapi tetap dapat
+	dihubungkan melalui pemilihan ROI. Kamera OV7670 menyediakan data piksel secara
+	streaming berdasarkan sinyal \emph{pixel clock}, HREF, dan VSYNC. Data tersebut
+	ditangkap oleh logika penerima kamera, kemudian disusun menjadi data piksel
+	yang dapat ditulis ke DDR SDRAM. DDR digunakan karena kapasitas BRAM internal
+	lebih sesuai untuk buffer lokal, FIFO, dan data antara, sedangkan penyimpanan
+	frame membutuhkan kapasitas yang lebih besar.
+
+	Akses DDR dilakukan melalui MIG dan antarmuka AXI. Jalur tulis digunakan untuk
+	menyimpan frame dari kamera, sedangkan jalur baca digunakan untuk mengambil
+	kembali data yang akan ditampilkan ke VGA atau diproses sebagai ROI. VGA Pmod
+	Digilent bertugas menampilkan data citra dengan timing horizontal dan vertikal
+	yang sesuai. Pemisahan domain kamera, memori, dan VGA menuntut mekanisme
+	buffering agar perbedaan laju data tidak menyebabkan kehilangan piksel atau
+	gangguan tampilan.
+
+	Pada tahap integrasi penuh, ROI dipilih dari frame yang tersedia dan dikonversi
+	menjadi masukan grayscale berukuran $28 \times 28$ piksel untuk CNN accelerator.
+	Hasil inferensi kemudian diproses oleh argmax untuk menentukan kelas prediksi.
+	Dengan rancangan ini, alur sistem dapat dijelaskan sebagai OV7670, DDR frame
+	buffer, ROI, CNN accelerator, argmax, dan VGA display.
 
 \section{Metode Implementasi}
+Metode implementasi dilakukan secara bertahap agar setiap bagian sistem dapat
+diverifikasi sebelum digabungkan dengan blok lain. Tahapan dimulai dari model
+acuan di Python, dilanjutkan dengan kuantisasi parameter, translasi ke Verilog,
+implementasi periferal kamera dan VGA, serta implementasi DDR sebagai frame
+buffer. Urutan ini dipilih untuk memisahkan risiko kesalahan algoritmik dari
+risiko kesalahan integrasi perangkat keras.
+
     \subsection{Implementasi Model CNN di Python}
+	Model CNN terlebih dahulu dibangun dan dilatih menggunakan Python. Implementasi ini berfungsi sebagai baseline software untuk menentukan arsitektur, bobot, bias, serta keluaran referensi pada setiap layer. Hasil dari tahap ini digunakan sebagai acuan ketika model dipindahkan ke representasi fixed-point dan Verilog.
     \subsection{Implementasi Kuantisasi Fixed-Point}
+	Parameter hasil pelatihan dikonversi dari floating-point ke fixed-point 16-bit dengan fractional bit yang telah ditentukan. Proses ini dilakukan sebelum parameter dimasukkan ke file memori Verilog. Validasi kuantisasi dilakukan dengan membandingkan rentang nilai, jumlah saturasi, dan kesesuaian keluaran terhadap model Python.
     \subsection{Implementasi CNN ke Verilog}
+	Implementasi Verilog merealisasikan operasi konvolusi, ReLU, pooling, fully connected, dan argmax sebagai rangkaian perangkat keras. Blok komputasi menggunakan kombinasi MAC berbasis DSP, shift register, FIFO, FSM, dan mekanisme valid-ready. Setiap layer diuji terhadap keluaran Python agar perbedaan akibat kuantisasi dan lebar bit dapat diamati secara bertahap.
     \subsection{Implementasi OV7670}
+	Implementasi OV7670 mencakup konfigurasi sensor, pembacaan sinyal sinkronisasi, dan penyusunan data piksel. Pengujian awal dilakukan untuk memastikan bahwa sinyal VSYNC, HREF, pixel clock, dan data paralel dapat diterima secara stabil sebelum data kamera dihubungkan ke jalur DDR.
     \subsection{Implementasi VGA}
+	Implementasi VGA dilakukan dengan membangkitkan timing horizontal, timing vertikal, sinyal HSYNC, VSYNC, dan data warna RGB. Pengujian sanitasi menggunakan pola warna dilakukan untuk memastikan bahwa jalur tampilan bekerja sebelum digunakan untuk menampilkan data dari frame buffer.
     \subsection{Implementasi DDR sebagai Frame Buffer}
+	DDR diimplementasikan sebagai frame buffer melalui MIG dan transaksi AXI. Jalur tulis menerima data dari kamera, sedangkan jalur baca menyediakan data untuk VGA dan ROI. Tahap ini penting karena kamera, CNN, dan VGA tidak selalu bekerja pada kebutuhan waktu yang sama.
 
 \section{Metode Integrasi}
     \subsection{Integrasi Model CNN ke FPGA}
+	Integrasi model CNN dilakukan dengan memasukkan parameter fixed-point ke memori parameter Verilog dan menghubungkan blok-blok layer sesuai urutan arsitektur. Keluaran tiap tahap dibandingkan dengan baseline Python agar kesalahan dapat dilokalisasi sebelum sistem dihubungkan dengan kamera dan DDR.
     \subsection{Integrasi OV7670 dengan DDR}
+	Integrasi OV7670 dengan DDR bertujuan memastikan data kamera dapat ditulis ke frame buffer secara berurutan. Pengujian difokuskan pada validitas alamat, sinkronisasi frame, dan kestabilan aliran data tulis.
     \subsection{Integrasi DDR dengan VGA}
+	Integrasi DDR dengan VGA dilakukan untuk memastikan frame yang tersimpan dapat dibaca kembali dan ditampilkan sesuai timing VGA. Tahap ini memvalidasi jalur baca DDR, pengaturan alamat, dan kesesuaian data piksel terhadap tampilan.
     \subsection{Integrasi OV7670, DDR, VGA, dan CNN}
+	Integrasi penuh menggabungkan jalur kamera-DDR-VGA dengan ROI dan CNN accelerator. Pada tahap ini, sistem diuji sebagai alur end-to-end sehingga data visual dari kamera dapat disimpan, dipilih sebagai ROI, diproses oleh CNN, dan hasilnya digunakan pada keluaran sistem.
 
 \section{Metode Pengujian}
     \subsection{Pengujian Akurasi Model di Python}
+	Pengujian akurasi Python digunakan sebagai acuan awal untuk menilai kemampuan model sebelum dipindahkan ke FPGA. Hasil ini tidak digunakan untuk mengubah arsitektur pada tahap hardware, tetapi sebagai baseline pembanding.
     \subsection{Pengujian Perbedaan Hasil Python dan Verilog}
+	Pengujian ini membandingkan keluaran antara implementasi Python dan Verilog pada beberapa titik layer. Tujuannya adalah memastikan bahwa perbedaan numerik akibat fixed-point tetap terkontrol dan tidak mengubah keputusan kelas secara tidak terduga.
     \subsection{Pengujian Penggunaan Kapasitas FPGA}
+	Pengujian kapasitas FPGA dilakukan dari laporan implementasi Vivado. Parameter yang diamati meliputi LUT, FF, BRAM, dan DSP karena keempat resource tersebut menentukan kelayakan integrasi pada Arty A7-100T.
     \subsection{Pengujian Sanitasi Kamera}
+	Pengujian sanitasi kamera dilakukan sebelum integrasi untuk memastikan kamera menghasilkan sinyal dan data yang valid. Tahap ini penting karena kesalahan pada akuisisi citra akan memengaruhi frame buffer, ROI, dan keluaran CNN.
     \subsection{Pengujian Sanitasi VGA}
+	Pengujian sanitasi VGA dilakukan menggunakan pola warna sederhana. Pola ini membantu memastikan bahwa timing VGA dan jalur RGB bekerja secara benar sebelum tampilan dihubungkan dengan data yang berasal dari DDR.
 	\begin{lstlisting}[language=Verilog, title={Kode Sanitasi VGA Verilog}, label={code:verilog-sanitize}]
 case (h_count[9:7])
 // White
@@ -339,46 +383,54 @@ default: begin vga_r  <= 4'h0;vga_g <= 4'h0;vga_b <= 4'h0; end
 endcase
 	\end{lstlisting}
     \subsection{Pengujian DDR}
+	Pengujian DDR dilakukan untuk memastikan transaksi baca dan tulis melalui MIG dan AXI berjalan setelah proses kalibrasi selesai. Validasi dilakukan terhadap kestabilan akses alamat dan kesesuaian data yang ditulis dan dibaca kembali.
     \subsection{Pengujian Sistem Terintegrasi}
+	Pengujian sistem terintegrasi dilakukan setelah blok CNN, kamera, DDR, dan VGA lulus pengujian dasar. Pendekatan bertahap ini digunakan agar kesalahan integrasi dapat ditelusuri berdasarkan blok yang sudah tervalidasi sebelumnya.
 
 \section{Metode Evaluasi}
     \subsection{Evaluasi Akurasi}
+	Evaluasi akurasi digunakan untuk menilai kesesuaian hasil klasifikasi terhadap label data uji dan sebagai pembanding antara baseline software dan implementasi hardware.
     \subsection{Evaluasi Perbedaan Bit}
+	Evaluasi perbedaan bit digunakan untuk melihat dampak representasi fixed-point terhadap nilai antara pada setiap blok CNN. Evaluasi ini penting karena kesalahan kecil pada layer awal dapat terakumulasi pada layer berikutnya.
     \subsection{Evaluasi Latensi Inferensi}
+	Evaluasi latensi inferensi dihitung berdasarkan jumlah siklus clock yang diperlukan sampai keluaran CNN tersedia. Nilai ini digunakan untuk menilai kemampuan sistem terhadap kebutuhan real-time.
     \subsection{Evaluasi Penggunaan Resource FPGA}
+	Evaluasi resource FPGA menilai penggunaan LUT, FF, BRAM, dan DSP pada CNN accelerator maupun sistem terintegrasi. Hasilnya digunakan untuk menganalisis trade-off antara paralelisme, time multiplexing, dan kelayakan implementasi.
     \subsection{Evaluasi Daya}
+	Evaluasi daya menggunakan hasil estimasi implementasi untuk menilai kesesuaian sistem dengan motivasi embedded vision yang membutuhkan konsumsi daya rendah.
     \subsection{Evaluasi Tampilan Real Time}
+	Evaluasi tampilan real-time dilakukan dengan melihat apakah jalur kamera, DDR, dan VGA mampu bekerja stabil ketika sistem dijalankan. Evaluasi ini melengkapi pengujian CNN karena sistem akhir tidak hanya berupa akselerator, tetapi sistem embedded vision end-to-end.
 
 \section{Tahapan Pelaksanaan}
-Tahapan pelaksanaan penelitian ini ditunjukkan pada 
-Gambar~\ref{fig:diagram-alir-penelitian}. Penelitian 
-diawali dengan studi literatur untuk memahami konsep 
-implementasi CNN pada 
-FPGA, teknik kuantisasi \emph{fixed-point}, serta 
-sistem pendukung seperti kamera, memori DDR, dan 
-tampilan VGA. Setelah itu, model CNN dikembangkan 
-terlebih dahulu menggunakan Python sebagai model acuan. 
-Model yang telah diperoleh kemudian dikonversi ke 
-representasi \emph{fixed-point} 16-bit agar lebih sesuai 
-dengan karakteristik komputasi FPGA. Tahap kuantisasi 
-ini divalidasi berdasarkan dua aspek, yaitu akurasi 
-model dan kebutuhan \emph{resource} FPGA, karena 
-implementasi CNN pada FPGA perlu mempertimbangkan 
-keseimbangan antara performa komputasi, penggunaan 
-sumber daya, dan ketelitian numerik 
+Tahapan pelaksanaan penelitian ini ditunjukkan pada
+Gambar~\ref{fig:diagram-alir-penelitian}. Penelitian
+diawali dengan studi literatur untuk memahami konsep
+implementasi CNN pada
+FPGA, teknik kuantisasi \emph{fixed-point}, serta
+sistem pendukung seperti kamera, memori DDR, dan
+tampilan VGA. Setelah itu, model CNN dikembangkan
+terlebih dahulu menggunakan Python sebagai model acuan.
+Model yang telah diperoleh kemudian dikonversi ke
+representasi \emph{fixed-point} 16-bit agar lebih sesuai
+dengan karakteristik komputasi FPGA. Tahap kuantisasi
+ini divalidasi berdasarkan dua aspek, yaitu akurasi
+model dan kebutuhan \emph{resource} FPGA, karena
+implementasi CNN pada FPGA perlu mempertimbangkan
+keseimbangan antara performa komputasi, penggunaan
+sumber daya, dan ketelitian numerik
 \cite{Solovyev2019FixedPointCNN, Jacob2018Quantization}.
 
-Setelah model hasil kuantisasi dinilai memenuhi 
-kebutuhan, arsitektur CNN diimplementasikan ke dalam 
-Verilog. Hasil implementasi Verilog kemudian dibandingkan 
-dengan hasil model Python melalui pengujian 
-\emph{bit-difference} untuk memastikan bahwa proses 
-komputasi pada hardware tetap mengikuti model acuan. 
-Tahap berikutnya adalah pengujian dasar hardware menggunakan 
-\emph{debug} ILA untuk memastikan blok kamera, FIFO, DDR, 
-dan VGA dapat bekerja dengan benar sebelum dilakukan 
-integrasi sistem. Setelah seluruh blok tervalidasi, sistem 
-diintegrasikan menjadi alur lengkap mulai dari pengambilan 
+Setelah model hasil kuantisasi dinilai memenuhi
+kebutuhan, arsitektur CNN diimplementasikan ke dalam
+Verilog. Hasil implementasi Verilog kemudian dibandingkan
+dengan hasil model Python melalui pengujian
+\emph{bit-difference} untuk memastikan bahwa proses
+komputasi pada hardware tetap mengikuti model acuan.
+Tahap berikutnya adalah pengujian dasar hardware menggunakan
+\emph{debug} ILA untuk memastikan blok kamera, FIFO, DDR,
+dan VGA dapat bekerja dengan benar sebelum dilakukan
+integrasi sistem. Setelah seluruh blok tervalidasi, sistem
+diintegrasikan menjadi alur lengkap mulai dari pengambilan
 citra, pemrosesan CNN, hingga evaluasi hasil inferensi.
 
 \begin{figure}[H]
@@ -389,20 +441,20 @@ citra, pemrosesan CNN, hingga evaluasi hasil inferensi.
 \end{figure}
 
 \section{Jadwal Kegiatan}
-Penelitian dilaksanakan selama enam bulan, yaitu dari 
-Januari 2026 hingga Juni 2026 sebagaimana ditunjukkan pada 
-Tabel \ref{jadwal-penelitian}. Tahap studi literatur 
-dilakukan pada bulan pertama hingga bulan ketiga sebagai 
-dasar dalam penyusunan dan pengembangan penelitian. 
-Desain sistem dilaksanakan mulai bulan kedua hingga bulan 
-keenam dengan mengacu pada hasil studi literatur serta 
-penelitian terdahulu yang relevan. Pembuatan prototipe 
-dilakukan secara paralel dengan proses desain sistem pada 
-bulan keempat hingga bulan keenam dengan mempertimbangkan 
-kapasitas perangkat keras dan waktu penelitian yang tersedia. 
-Uji coba dan perbaikan sistem juga dilaksanakan pada periode 
-yang sama untuk mengevaluasi kinerja prototipe dan melakukan 
-penyempurnaan secara bertahap. Adapun penulisan skripsi 
+Penelitian dilaksanakan selama enam bulan, yaitu dari
+Januari 2026 hingga Juni 2026 sebagaimana ditunjukkan pada
+Tabel \ref{jadwal-penelitian}. Tahap studi literatur
+dilakukan pada bulan pertama hingga bulan ketiga sebagai
+dasar dalam penyusunan dan pengembangan penelitian.
+Desain sistem dilaksanakan mulai bulan kedua hingga bulan
+keenam dengan mengacu pada hasil studi literatur serta
+penelitian terdahulu yang relevan. Pembuatan prototipe
+dilakukan secara paralel dengan proses desain sistem pada
+bulan keempat hingga bulan keenam dengan mempertimbangkan
+kapasitas perangkat keras dan waktu penelitian yang tersedia.
+Uji coba dan perbaikan sistem juga dilaksanakan pada periode
+yang sama untuk mengevaluasi kinerja prototipe dan melakukan
+penyempurnaan secara bertahap. Adapun penulisan skripsi
 dilakukan pada bulan keenam sebagai tahap akhir penelitian.
 
 
