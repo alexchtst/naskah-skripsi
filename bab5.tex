@@ -6,6 +6,8 @@ Berdasarkan hasil perancangan, implementasi, dan pengujian yang telah dilakukan,
 \begin{enumerate}
     \item Model CNN berhasil diimplementasikan pada board FPGA menggunakan representasi fixed-point 16-bit Q2.14, yaitu dua bit untuk bagian integer termasuk bit tanda dan 14 bit untuk bagian fraksi. Format ini digunakan karena parameter model tidak keluar dari rentang $-2$ sampai $2$, sehingga resolusi pecahan dapat diprioritaskan. Proses kuantisasi dilakukan terhadap parameter bobot dan bias model sehingga dapat digunakan pada modul Verilog tanpa menggunakan operasi floating-point.
 
+    \item Model Python mencapai akurasi 98,2\% pada data latih dan 97,2\% pada data uji. Pada evaluasi Verilog menggunakan 100 sampel untuk setiap label, kelas prediksi yang dihasilkan sama dengan keluaran model Python untuk sampel masukan yang sama. Perbedaan nilai numerik akibat kuantisasi, pembulatan, pemotongan bit, dan akumulasi operasi MAC tidak mengubah hasil klasifikasi akhir berdasarkan argmax pada sampel yang dievaluasi.
+
     \item Hasil implementasi CNN accelerator menunjukkan bahwa sistem mampu menghasilkan keluaran inferensi dalam 3802 siklus clock. Pada frekuensi kerja 100 MHz, nilai tersebut setara dengan latensi sebesar 38,02 $\mu$s.
 
     \item Hasil penggunaan resource menunjukkan bahwa CNN accelerator menggunakan sebagian besar DSP pada FPGA. Pada implementasi sistem penuh, penggunaan DSP mencapai 235 DSP48E1 dari total 240 DSP yang tersedia, sehingga DSP menjadi resource utama yang membatasi pengembangan model.

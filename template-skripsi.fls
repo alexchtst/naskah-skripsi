@@ -3,7 +3,7 @@ INPUT /etc/texmf/web2c/texmf.cnf
 INPUT /usr/share/texmf/web2c/texmf.cnf
 INPUT /usr/share/texlive/texmf-dist/web2c/texmf.cnf
 INPUT /var/lib/texmf/web2c/pdftex/pdflatex.fmt
-INPUT /home/ach/skripsi/naskah-skripsi/template-skripsi.tex
+INPUT template-skripsi.tex
 OUTPUT template-skripsi.log
 INPUT ./jtetiskripsi.cls
 INPUT ./jtetiskripsi.cls

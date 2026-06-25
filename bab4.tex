@@ -53,9 +53,9 @@ Penurunan loss menjadi dasar bahwa parameter yang dihasilkan dapat digunakan seb
       	\label{fig:training-acc}
   	\end{figure}
 
-Gambar~\ref{fig:training-acc} memperlihatkan perubahan akurasi selama pelatihan. Peningkatan akurasi yang mengikuti penurunan loss menunjukkan bahwa model semakin mampu memetakan fitur citra ke kelas digit yang benar. Akurasi akhir model mencapai 97,2\%.
+Gambar~\ref{fig:training-acc} memperlihatkan perubahan akurasi selama pelatihan. Peningkatan akurasi yang mengikuti penurunan loss menunjukkan bahwa model semakin mampu memetakan fitur citra ke kelas digit yang benar. Akurasi akhir model pada data latih mencapai 98,2\%.
 
-Stabilitas akurasi pada akhir pelatihan mengindikasikan bahwa model memiliki kemampuan generalisasi awal yang cukup untuk digunakan sebagai acuan implementasi hardware. Hasil ini juga menjadi pembanding ketika keluaran Verilog dievaluasi terhadap keluaran Python.
+Stabilitas akurasi pada akhir pelatihan mengindikasikan bahwa model telah konvergen dan dapat digunakan sebagai acuan implementasi hardware. Kemampuan generalisasi kemudian dievaluasi pada data uji sebelum keluaran Verilog dibandingkan terhadap keluaran Python.
 	\begin{figure}[H]
       	\centering
       	\includegraphics[width=0.95\textwidth]{gambar/confusion_matrix_train_model.png}
@@ -115,7 +115,7 @@ Data uji berperan sebagai baseline software sebelum model dipindahkan ke hardwar
       \label{fig:testing-confussion-matrix}
   	\end{figure}
 
-Gambar~\ref{fig:testing-confussion-matrix} memperlihatkan confusion matrix pada data uji. Pola diagonal yang dominan menunjukkan bahwa model mampu mengenali sebagian besar kelas dengan benar pada data yang tidak digunakan langsung sebagai data latih.
+Gambar~\ref{fig:testing-confussion-matrix} memperlihatkan confusion matrix pada data uji. Pola diagonal yang dominan menunjukkan bahwa model mampu mengenali sebagian besar kelas dengan benar pada data yang tidak digunakan langsung sebagai data latih. Akurasi Python pada data uji adalah 97,2\%.
 
 Kesalahan di luar diagonal perlu dibaca sebagai konsekuensi dari kemiripan visual antar digit, variasi tulisan tangan, dan kapasitas model yang memang dibuat kecil agar sesuai dengan FPGA. Oleh karena itu, hasil evaluasi Python menjadi acuan realistis untuk menilai apakah implementasi hardware mempertahankan perilaku model.
 
@@ -501,7 +501,7 @@ Gambar~\ref{fig:dense-diff} memperlihatkan bahwa pada dense layer, FC1 cenderung
 	      	\label{fig:accuracy-comparison}
 	  	\end{figure}
 
-Gambar~\ref{fig:accuracy-comparison} memperlihatkan perbandingan akurasi simulasi Verilog Icarus terhadap actual accuracy dari baseline Python. Akurasi Verilog dihitung dari 100 sampel per label, sedangkan akurasi Python dihitung pada keseluruhan dataset uji. Karena cakupan data yang berbeda, grafik ini sebaiknya dibaca sebagai perbandingan performa pada skenario pengujian yang tidak identik, bukan sebagai pernyataan bahwa salah satu implementasi secara mutlak lebih baik. Pada sampel yang diuji, akurasi Verilog berada pada rentang 0,95 sampai 1,00 dengan rata-rata sekitar 98,1\%, dan hasil argmax tetap sama dengan baseline Python untuk sampel yang sama.
+Gambar~\ref{fig:accuracy-comparison} memperlihatkan evaluasi hasil argmax simulasi Verilog Icarus terhadap baseline Python. Evaluasi dilakukan menggunakan 100 sampel untuk setiap label, dan setiap sampel masukan yang digunakan pada Verilog dibandingkan dengan keluaran model Python untuk sampel yang sama. Pada seluruh label yang dievaluasi, implementasi Verilog menghasilkan kelas prediksi yang sama persis dengan model Python. Jika prediksi tersebut dibandingkan terhadap label aktual pada subset evaluasi, akurasi per label berada pada rentang 0,95 sampai 1,00 dengan rata-rata sekitar 98,1\%. Angka ini menunjukkan performa pada subset 100 sampel per label, sedangkan akurasi Python pada keseluruhan data uji adalah 97,2\%. Meskipun nilai keluaran fixed-point sedikit bergeser dari nilai Python akibat kuantisasi, pembulatan, pemotongan bit, dan akumulasi operasi MAC, pergeseran tersebut tidak mengubah hasil klasifikasi akhir berdasarkan argmax pada sampel yang dievaluasi.
 
     \subsection{Evaluasi Hasil Inferensi Model pada FPGA}
 
