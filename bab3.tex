@@ -5,9 +5,9 @@
 
 	\subsection{Perangkat Keras}
 	Perangkat keras terdiri dari sebuah FPGA board yang digunakan sebagai
-	media inferensi model CNN serta sejumlah pheripheral meida untuk
-	melakukan \emph{streaming meida} untuk pengambilan data. Detail mengenai
-	perangkat keras yang digunakan terdapat pada daftar berikut.
+	media inferensi model CNN serta memori DDR SDRAM yang digunakan sebagai
+	\emph{double frame memory}. Detail mengenai perangkat keras yang digunakan
+	terdapat pada daftar berikut.
 
 		\vspace{-0.5cm}
 
@@ -15,8 +15,7 @@
 		\begin{singlespace}
 		\itemsep0em
 			\item Digilent Arty A7-100T,
-			\item OV7670,
-			\item \emph{VGA Pmod Digilent},
+			\item DDR SDRAM,
 			\item \emph{USB},
 			\item 14 Jumper \emph{Male-Female},
 		\end{singlespace}
@@ -43,35 +42,42 @@
 
 \section{Rancangan Sistem}
     \subsection{Rancangan Umum Sistem}
-		\begin{figure}[H]
-		\centering
-		\includegraphics[width=0.75\textwidth]{gambar/rancangan-umum-sistem.png}
-		\caption{Rancangan Umum Sistem}
-		\label{fig:rancangan-umum-sistem}
-	\end{figure}
-	DDR SDRAM digunakan sebagai \emph{frame buffer} agar
-	data citra dari kamera dan data yang akan ditampilkan
-	ke VGA dapat dipisahkan secara lebih stabil. Jalur
-	kamera, DDR, dan VGA berperan sebagai sistem akuisisi
-	dan tampilan citra, sedangkan jalur ROI dan CNN
-	berperan sebagai sistem klasifikasi. Pemisahan ini
-	dilakukan agar proses inferensi CNN tidak harus
-	dilakukan pada seluruh frame, melainkan hanya pada
-	area tertentu yang dianggap relevan. Dengan demikian,
-		beban komputasi dapat dikurangi tanpa menghilangkan
-		fungsi utama sistem sebagai sistem klasifikasi citra
-		berbasis FPGA.
+	DDR SDRAM digunakan sebagai \emph{double frame memory} agar dua frame citra
+	dapat disimpan secara bergantian. Satu frame berperan sebagai buffer aktif
+	untuk proses baca dan inferensi, sedangkan frame lainnya digunakan sebagai
+	buffer tulis untuk data berikutnya. Pemisahan ini membantu menghindari
+	konflik akses baca-tulis pada memori yang sama dan membuat aliran data
+	menuju CNN accelerator lebih stabil.
+
+		Mekanisme \emph{double frame memory} juga memudahkan verifikasi sistem
+	karena data masukan dan keluaran dapat dipertahankan dalam buffer yang
+	berbeda. Dengan demikian, proses evaluasi tidak bergantung pada periferal
+	akuisisi atau tampilan eksternal, melainkan cukup pada konsistensi data yang
+	disimpan, dibaca, dan dipindahkan antarbuffer oleh pengendali memori.
 
 	\subsection{Dataset}
 		Dataset yang digunakan pada penelitian ini adalah dataset MNIST yang diperoleh
-		dari Kaggle \cite{KaggleMNISTDataset}. Dataset MNIST berisi citra angka
-		tulisan tangan dari digit 0 sampai 9. Setiap citra memiliki ukuran
-		$28 \times 28$ piksel dan direpresentasikan dalam bentuk \emph{grayscale}.
+		dari Kaggle \cite{KaggleMNISTDataset}. Dataset MNIST merupakan kumpulan citra
+		angka tulisan tangan dari digit 0 sampai 9 yang umum digunakan sebagai
+		\emph{benchmark} awal pada pengembangan sistem klasifikasi citra
+		\cite{Lecun1998GradientBasedLearning}. Dataset ini terdiri dari 60.000 citra
+		untuk pelatihan dan 10.000 citra untuk pengujian. Setiap citra memiliki
+		ukuran $28 \times 28$ piksel dan direpresentasikan dalam bentuk
+		\emph{grayscale}, sehingga setiap sampel hanya memiliki satu kanal intensitas.
 		Karakteristik ini sesuai dengan kebutuhan penelitian karena rancangan CNN
 		menggunakan satu kanal input dan menghasilkan 10 kelas keluaran, yaitu
-		kelas digit 0 sampai 9. Dengan demikian, dataset MNIST dapat digunakan
-		sebagai dasar pelatihan dan pengujian model sebelum parameter model
-		dikonversi ke format \emph{fixed-point} untuk implementasi pada FPGA.
+		kelas digit 0 sampai 9.
+
+		Data MNIST yang diunduh dari Kaggle disediakan sebagai dataset publik yang
+		berasal dari internet. Data tersebut digunakan sebagai sumber data utama pada
+		proses pelatihan dan evaluasi model CNN di Python. Sebelum digunakan oleh
+		model, citra dibaca sebagai matriks piksel berukuran $28 \times 28$,
+		dinormalisasi, kemudian dipasangkan dengan label kelasnya. Data latih
+		digunakan untuk memperoleh parameter bobot dan bias, sedangkan data uji
+		digunakan untuk mengukur kemampuan model terhadap sampel yang tidak
+		digunakan pada proses pelatihan. Pada tahap implementasi, citra dan hasil
+		inferensi dapat ditempatkan pada \emph{double frame memory} sehingga aliran
+		data tetap terpisah antara buffer aktif dan buffer cadangan.
 
 		Pemilihan MNIST juga dilakukan karena ukuran citra relatif kecil dan struktur
 		datanya sederhana, sehingga sesuai untuk tahap validasi awal akselerator CNN
@@ -80,7 +86,10 @@
 		dan resource komputasi yang terlalu besar. Hal ini penting karena fokus
 		penelitian bukan hanya pada akurasi model, tetapi juga pada keterlaksanaan
 		implementasi hardware, penggunaan resource FPGA, latensi inferensi, serta
-		perbandingan hasil komputasi antara Python dan Verilog.
+		perbandingan hasil komputasi antara Python dan Verilog. Dengan demikian,
+		dataset MNIST digunakan sebagai dasar pelatihan dan pengujian model sebelum
+		parameter model dikonversi ke format \emph{fixed-point} untuk implementasi
+		pada FPGA.
 
     \subsection{Rancangan Arsitektur CNN}
 	Arsitektur CNN yang digunakan pada penelitian ini
@@ -88,7 +97,7 @@
 	kecil agar sesuai dengan keterbatasan sumber daya
 	pada FPGA. Input model berupa citra grayscale
 	berukuran $28 \times 28$ piksel yang diperoleh dari
-	hasil pemrosesan ROI. Model CNN dikembangkan
+	hasil pemrosesan citra pada buffer aktif. Model CNN dikembangkan
 	terlebih dahulu menggunakan Python sebagai model
 	acuan sebelum parameter bobot dan biasnya dipindahkan
 	ke implementasi Verilog. Penggunaan CNN dipilih
@@ -327,37 +336,35 @@
 	timing dan menghasilkan keluaran inferensi yang sesuai dengan model
 	acuan.
 
-    \subsection{Rancangan Sistem Kamera, DDR, dan VGA}
-	Rancangan subsistem kamera, DDR, dan VGA dibuat sebagai jalur akuisisi dan
-	tampilan citra yang terpisah dari jalur komputasi CNN, tetapi tetap dapat
-	dihubungkan melalui pemilihan ROI. Kamera OV7670 menyediakan data piksel secara
-	streaming berdasarkan sinyal \emph{pixel clock}, HREF, dan VSYNC. Data tersebut
-	ditangkap oleh logika penerima kamera, kemudian disusun menjadi data piksel
-	yang dapat ditulis ke DDR SDRAM. DDR digunakan karena kapasitas BRAM internal
-	lebih sesuai untuk buffer lokal, FIFO, dan data antara, sedangkan penyimpanan
-	frame membutuhkan kapasitas yang lebih besar \cite{OmniVision2006OV7670,Navaneethan2022OV7670VGA}.
+    \subsection{Rancangan Double Frame Memory}
+	Rancangan \emph{double frame memory} dibuat untuk menyediakan dua area
+	penyimpanan citra yang dapat digunakan secara bergantian. Saat satu buffer
+	digunakan oleh proses baca untuk memasok data ke CNN accelerator, buffer
+	lainnya dapat diisi oleh data baru. Setelah proses selesai, peran kedua
+	buffer ditukar sehingga aliran data berikutnya dapat diproses tanpa
+	menunggu buffer yang sama kosong kembali.
 
-	Akses DDR dilakukan melalui MIG dan antarmuka AXI. Jalur tulis digunakan untuk
-	menyimpan frame dari kamera, sedangkan jalur baca digunakan untuk mengambil
-	kembali data yang akan ditampilkan ke VGA atau diproses sebagai ROI. VGA Pmod
-	Digilent bertugas menampilkan data citra dengan timing horizontal dan vertikal
-	yang sesuai. Pemisahan domain kamera, memori, dan VGA menuntut mekanisme
-	buffering agar perbedaan laju data tidak menyebabkan kehilangan piksel atau
-	gangguan tampilan \cite{ARM2020AXI,Xilinx2024MIG,DigilentVGADisplay}.
+	Akses DDR dilakukan melalui MIG dan antarmuka AXI. Jalur tulis digunakan
+	untuk menempatkan data masukan ke buffer aktif, sedangkan jalur baca
+	mengambil kembali data untuk proses inferensi atau evaluasi hasil. Dengan
+	memisahkan buffer aktif dan buffer cadangan, sistem dapat mengurangi risiko
+	\emph{data hazard} dan menjaga agar pengolahan citra tetap konsisten
+	\cite{ARM2020AXI,Xilinx2024MIG}.
 
-	Pada tahap integrasi penuh, ROI dipilih dari frame yang tersedia dan dikonversi
-	menjadi masukan grayscale berukuran $28 \times 28$ piksel untuk CNN accelerator.
-	Hasil inferensi kemudian diproses oleh argmax untuk menentukan kelas prediksi.
-	Dengan rancangan ini, alur sistem dapat dijelaskan sebagai OV7670, DDR frame
-	buffer, ROI, CNN accelerator, argmax, dan VGA display \cite{Solovyev2019FixedPointCNN}.
+	Pada tahap implementasi, data citra dari dataset disimpan ke salah satu
+	buffer, kemudian dibaca oleh CNN accelerator sesuai urutan proses yang
+	dirancang. Hasil inferensi dapat ditulis kembali ke buffer lain untuk
+	keperluan pengamatan atau evaluasi. Dengan rancangan ini, alur sistem dapat
+	dijelaskan sebagai data input, \emph{double frame memory}, CNN accelerator,
+	dan data output \cite{Solovyev2019FixedPointCNN}.
 
 \section{Metode Implementasi}
 Metode implementasi dilakukan secara bertahap agar setiap bagian sistem dapat
 diverifikasi sebelum digabungkan dengan blok lain. Tahapan dimulai dari model
 acuan di Python, dilanjutkan dengan kuantisasi parameter, translasi ke Verilog,
-implementasi periferal kamera dan VGA, serta implementasi DDR sebagai frame
-buffer. Urutan ini dipilih untuk memisahkan risiko kesalahan algoritmik dari
-risiko kesalahan integrasi perangkat keras \cite{Solovyev2019FixedPointCNN,Jacob2018Quantization}.
+implementasi DDR sebagai \emph{double frame memory}. Urutan ini dipilih untuk
+memisahkan risiko kesalahan algoritmik dari risiko kesalahan integrasi
+perangkat keras \cite{Solovyev2019FixedPointCNN,Jacob2018Quantization}.
 
     \subsection{Implementasi Model CNN di Python}
 	Model CNN terlebih dahulu dibangun dan dilatih menggunakan Python. Tahap ini
@@ -436,70 +443,44 @@ risiko kesalahan integrasi perangkat keras \cite{Solovyev2019FixedPointCNN,Jacob
 	pemotongan lebar bit, atau kesalahan urutan data dapat dianalisis pada titik
 	yang lebih spesifik.
 
-    \subsection{Implementasi OV7670}
-	Implementasi OV7670 mencakup konfigurasi sensor, pembacaan sinyal
-	sinkronisasi, dan penyusunan data piksel. Kamera harus dikonfigurasi terlebih
-	dahulu agar format keluaran, resolusi, dan mode operasi sesuai dengan
-	kebutuhan sistem. Tanpa konfigurasi yang benar, data yang diterima FPGA dapat
-	memiliki format warna, urutan byte, atau timing yang tidak sesuai dengan
-	rancangan frame buffer dan VGA.
+    \subsection{Implementasi DDR sebagai Double Frame Memory}
+	DDR diimplementasikan sebagai \emph{double frame memory} melalui MIG dan
+	transaksi AXI. Tahap ini diperlukan karena satu frame citra membutuhkan
+	kapasitas penyimpanan yang lebih besar dibandingkan buffer kecil yang
+	idealnya ditempatkan pada BRAM. BRAM lebih sesuai digunakan untuk FIFO,
+	line buffer, dan data antara yang dekat dengan blok komputasi, sedangkan DDR
+	menyediakan ruang yang lebih besar untuk menyimpan dua frame secara
+	bergantian.
 
-	Pembacaan data kamera dilakukan berdasarkan sinyal VSYNC, HREF, pixel clock,
-	dan bus data paralel. VSYNC digunakan untuk menandai awal atau akhir frame,
-	HREF menunjukkan validitas data pada satu baris, sedangkan pixel clock menjadi
-	acuan pengambilan data piksel. Implementasi ini diperlukan karena data kamera
-	masuk secara streaming dan tidak dapat dihentikan secara bebas seperti data
-	dari memori. Oleh karena itu, logika penerima harus mampu menangkap piksel
-	pada waktu yang tepat agar posisi piksel dalam frame tidak bergeser.
-
-    \subsection{Implementasi VGA}
-	Implementasi VGA dilakukan dengan membangkitkan timing horizontal, timing
-	vertikal, sinyal HSYNC, VSYNC, dan data warna RGB. Tahap ini diperlukan karena
-	VGA bekerja dengan timing yang tetap. Monitor hanya dapat menampilkan gambar
-	dengan benar apabila urutan piksel, periode aktif, periode blanking, dan
-	sinyal sinkronisasi sesuai dengan standar resolusi yang digunakan. Jika timing
-	tidak tepat, tampilan dapat bergeser, berkedip, atau tidak terbaca oleh monitor.
-
-	Pada penelitian ini, VGA berfungsi sebagai jalur observasi visual terhadap
-	sistem. Keluaran VGA memungkinkan hasil akuisisi kamera dan data dari frame
-	buffer diamati secara langsung tanpa harus selalu mengirim data kembali ke
-	komputer. Oleh karena itu, modul VGA harus divalidasi sebelum dihubungkan
-	dengan DDR, karena kegagalan tampilan dapat menyulitkan analisis apakah
-	kesalahan berasal dari jalur baca memori atau dari pembangkit sinyal VGA.
-
-    \subsection{Implementasi DDR sebagai Frame Buffer}
-	DDR diimplementasikan sebagai frame buffer melalui MIG dan transaksi AXI.
-	Tahap ini diperlukan karena satu frame citra membutuhkan kapasitas penyimpanan
-	yang lebih besar dibandingkan buffer kecil yang idealnya ditempatkan pada BRAM.
-	BRAM lebih sesuai digunakan untuk FIFO, line buffer, dan data antara yang dekat
-	dengan blok komputasi, sedangkan DDR menyediakan ruang yang lebih besar untuk
-	menyimpan frame dari kamera.
-
-	Jalur tulis DDR menerima data dari kamera, sedangkan jalur baca menyediakan
-	data untuk VGA dan ROI. Pemisahan jalur tulis dan baca diperlukan karena kamera
-	menghasilkan data berdasarkan pixel clock, VGA membaca data berdasarkan timing
-	tampilan, dan CNN hanya membutuhkan area tertentu sebagai masukan ROI. Ketiga
-	bagian tersebut tidak selalu bekerja pada laju dan kebutuhan akses yang sama,
-	sehingga frame buffer digunakan sebagai penyangga antarproses.
+	Jalur tulis DDR menerima data masukan untuk buffer aktif, sedangkan jalur
+	baca menyediakan data untuk CNN accelerator atau evaluasi hasil. Pemisahan
+	jalur tulis dan baca diperlukan karena proses tulis dan baca dapat berjalan
+	pada waktu yang berbeda, sementara CNN hanya membutuhkan data citra yang
+	sudah siap diproses. Ketika satu buffer sedang dibaca, buffer lainnya dapat
+	diisi sehingga aliran data tetap berlanjut tanpa menghentikan proses.
 
 	Penggunaan MIG dan AXI dilakukan agar akses DDR dapat dikendalikan melalui
 	antarmuka yang terstruktur. MIG menangani inisialisasi, kalibrasi, dan detail
 	fisik DDR, sedangkan AXI digunakan untuk membentuk transaksi baca dan tulis.
 	Dengan pendekatan ini, rancangan logika dapat difokuskan pada pengaturan
-	alamat, validitas data, dan sinkronisasi aliran frame. Implementasi DDR sebagai
-	frame buffer menjadi tahap penting karena integrasi OV7670, VGA, dan CNN
-	membutuhkan sumber data yang stabil dan dapat diakses kembali sesuai kebutuhan
-	masing-masing subsistem.
+	alamat, validitas data, dan sinkronisasi perpindahan buffer. Implementasi DDR
+	sebagai \emph{double frame memory} menjadi tahap penting karena sistem
+	membutuhkan sumber data yang stabil dan dapat diakses kembali sesuai urutan
+	pengolahan.
 
 \section{Metode Integrasi}
     \subsection{Integrasi Model CNN ke FPGA}
-	Integrasi model CNN dilakukan dengan memasukkan parameter fixed-point ke memori parameter Verilog dan menghubungkan blok-blok layer sesuai urutan arsitektur. Keluaran tiap tahap dibandingkan dengan baseline Python agar kesalahan dapat dilokalisasi sebelum sistem dihubungkan dengan kamera dan DDR.
-    \subsection{Integrasi OV7670 dengan DDR}
-	Integrasi OV7670 dengan DDR bertujuan memastikan data kamera dapat ditulis ke frame buffer secara berurutan. Pengujian difokuskan pada validitas alamat, sinkronisasi frame, dan kestabilan aliran data tulis.
-    \subsection{Integrasi DDR dengan VGA}
-	Integrasi DDR dengan VGA dilakukan untuk memastikan frame yang tersimpan dapat dibaca kembali dan ditampilkan sesuai timing VGA. Tahap ini memvalidasi jalur baca DDR, pengaturan alamat, dan kesesuaian data piksel terhadap tampilan.
-    \subsection{Integrasi OV7670, DDR, VGA, dan CNN}
-	Integrasi penuh menggabungkan jalur kamera-DDR-VGA dengan ROI dan CNN accelerator. Pada tahap ini, sistem diuji sebagai alur end-to-end sehingga data visual dari kamera dapat disimpan, dipilih sebagai ROI, diproses oleh CNN, dan hasilnya digunakan pada keluaran sistem.
+	Integrasi model CNN dilakukan dengan memasukkan parameter fixed-point ke memori parameter Verilog dan menghubungkan blok-blok layer sesuai urutan arsitektur. Keluaran tiap tahap dibandingkan dengan baseline Python agar kesalahan dapat dilokalisasi sebelum sistem dihubungkan dengan memori DDR.
+    \subsection{Integrasi DDR sebagai Double Frame Memory}
+	Integrasi DDR sebagai \emph{double frame memory} bertujuan memastikan data
+	citra dapat ditulis ke buffer aktif secara berurutan dan dibaca kembali dari
+	buffer lain tanpa saling mengganggu. Tahap ini memvalidasi validitas alamat,
+	sinkronisasi perpindahan buffer, dan kestabilan aliran data tulis-baca.
+    \subsection{Integrasi Double Frame Memory dan CNN}
+	Integrasi penuh menggabungkan \emph{double frame memory} dengan CNN
+	accelerator. Pada tahap ini, sistem diuji sebagai alur end-to-end sehingga
+	data citra dapat disimpan, dipilih dari buffer yang aktif, diproses oleh CNN,
+	dan hasilnya digunakan sebagai keluaran sistem.
 
 \section{Metode Pengujian}
     \subsection{Pengujian Akurasi Model di Python}
@@ -533,60 +514,22 @@ risiko kesalahan integrasi perangkat keras \cite{Solovyev2019FixedPointCNN,Jacob
 	yang tersedia pada FPGA.
 
 	Selain pada CNN accelerator, pengujian resource memengaruhi implementasi
-	algoritma resizing image dan konversi grayscale. Proses resizing dari frame
-	kamera menuju ROI berukuran $28 \times 28$ piksel harus dibuat ringan agar
-	tidak menambah beban komputasi dan memori yang besar. Demikian pula, konversi
-	grayscale perlu diimplementasikan dengan operasi aritmetika sederhana agar
-	tidak menggunakan DSP secara berlebihan. Dengan demikian, pengujian kapasitas
-	FPGA menjadi dasar untuk menyeimbangkan kebutuhan akurasi numerik, kestabilan
-	aliran data, dan kelayakan integrasi seluruh subsistem pada satu board FPGA.
-    \subsection{Pengujian Sanitasi Kamera}
-	Pengujian sanitasi kamera dilakukan sebelum integrasi untuk memastikan kamera menghasilkan sinyal dan data yang valid. Tahap ini penting karena kesalahan pada akuisisi citra akan memengaruhi frame buffer, ROI, dan keluaran CNN.
-
-	\begin{figure}[H]
-		\centering
-		\includegraphics[width=0.85\textwidth]{gambar/rgb-565-signal.png}
-		\caption{Timing keluaran data RGB565 pada kamera OV7670}
-		\label{fig:rgb-565-signal}
-	\end{figure}
-
-	Gambar~\ref{fig:rgb-565-signal} menunjukkan urutan sinyal keluaran kamera
-	OV7670 ketika menggunakan format RGB565. Pada format ini, satu piksel warna
-	direpresentasikan dalam 16 bit, sehingga data piksel dikirim melalui dua
-	tahap byte secara berurutan pada jalur data paralel kamera. Sinyal PCLK
-	digunakan sebagai acuan pengambilan data, sedangkan HREF menunjukkan bahwa
-	data pada baris citra sedang valid. Pola timing ini menjadi dasar pengujian
-	sanitasi kamera karena logika penerima harus mengambil byte pada siklus yang
-	tepat agar pasangan data RGB565 tidak tertukar atau bergeser. Gambar tersebut
-	diadaptasi dari datasheet OV7670 yang menjelaskan hubungan antara PCLK, HREF,
-	dan keluaran data piksel pada mode RGB565 \cite{OmniVision2006OV7670}.
-
-    \subsection{Pengujian Sanitasi VGA}
-	Pengujian sanitasi VGA dilakukan menggunakan pola warna sederhana. Pola ini membantu memastikan bahwa timing VGA dan jalur RGB bekerja secara benar sebelum tampilan dihubungkan dengan data yang berasal dari DDR.
-	\begin{lstlisting}[language=Verilog, title={Kode Sanitasi VGA Verilog}, label={code:verilog-sanitize}]
-case (h_count[9:7])
-// White
-3'd0: begin vga_r <= 4'hF;vga_g <= 4'hF;vga_b <= 4'hF;end
-// Yellow
-3'd1: begin vga_r <= 4'hF;vga_g <= 4'hF;vga_b <= 4'h0; end
-// Cyan
-3'd2: begin vga_r <= 4'h0;vga_g <= 4'hF;vga_b <= 4'hF; end
-// Green
-3'd3: begin vga_r <= 4'h0;vga_g <= 4'hF;vga_b <= 4'h0; end
-// Magenta
-3'd4: begin vga_r <= 4'hF;vga_g <= 4'h0;vga_b <= 4'hF; end
-// Red
-3'd5: begin vga_r <= 4'hF;vga_g <= 4'h0;vga_b <= 4'h0; end
-// Blue
-3'd6: begin vga_r <= 4'h0;vga_g <= 4'h0;vga_b <= 4'hF; end
-// Black
-default: begin vga_r  <= 4'h0;vga_g <= 4'h0;vga_b <= 4'h0; end
-endcase
-	\end{lstlisting}
-    \subsection{Pengujian DDR}
-	Pengujian DDR dilakukan untuk memastikan transaksi baca dan tulis melalui MIG dan AXI berjalan setelah proses kalibrasi selesai. Validasi dilakukan terhadap kestabilan akses alamat dan kesesuaian data yang ditulis dan dibaca kembali.
+	akses memori dan perpindahan buffer. Proses pemindahan citra ke buffer
+	berukuran $28 \times 28$ piksel harus dibuat ringan agar tidak menambah
+	beban komputasi dan memori yang besar. Dengan demikian, pengujian kapasitas
+	FPGA menjadi dasar untuk menyeimbangkan kebutuhan akurasi numerik,
+	kestabilan aliran data, dan kelayakan integrasi seluruh subsistem pada satu
+	board FPGA.
+    \subsection{Pengujian Double Frame Memory}
+	Pengujian \emph{double frame memory} dilakukan untuk memastikan transaksi
+	baca dan tulis melalui MIG dan AXI berjalan setelah proses kalibrasi selesai.
+	Validasi dilakukan terhadap kestabilan akses alamat, perpindahan buffer,
+	dan kesesuaian data yang ditulis dan dibaca kembali.
     \subsection{Pengujian Sistem Terintegrasi}
-	Pengujian sistem terintegrasi dilakukan setelah blok CNN, kamera, DDR, dan VGA lulus pengujian dasar. Pendekatan bertahap ini digunakan agar kesalahan integrasi dapat ditelusuri berdasarkan blok yang sudah tervalidasi sebelumnya.
+	Pengujian sistem terintegrasi dilakukan setelah blok CNN dan \emph{double
+	frame memory} lulus pengujian dasar. Pendekatan bertahap ini digunakan agar
+	kesalahan integrasi dapat ditelusuri berdasarkan blok yang sudah
+	tervalidasi sebelumnya.
 
 \section{Metode Evaluasi}
     \subsection{Evaluasi Akurasi}
@@ -631,7 +574,7 @@ endcase
 	perbandingan bit dilakukan pada skala numerik yang setara.
 
 	Potongan kode yang digunakan untuk proses evaluasi tersebut ditunjukkan pada
-	Listing~\ref{code:bit-difference-eval}. Fungsi \texttt{sign\_extend}
+	Kode~\ref{code:bit-difference-eval}. Fungsi \texttt{sign\_extend}
 	digunakan untuk mengubah data unsigned two's complement menjadi signed integer
 	sesuai lebar bit tertentu, sedangkan fungsi \texttt{python\_float\_to\_fixed}
 	digunakan untuk mengubah keluaran \emph{floating-point} Python menjadi integer
@@ -712,7 +655,10 @@ def python_float_to_fixed(arr, frac_bits=14, mode="round"):
     \subsection{Evaluasi Daya}
 	Evaluasi daya menggunakan hasil estimasi implementasi untuk menilai kesesuaian sistem dengan motivasi embedded vision yang membutuhkan konsumsi daya rendah.
     \subsection{Evaluasi Tampilan Real Time}
-	Evaluasi tampilan real-time dilakukan dengan melihat apakah jalur kamera, DDR, dan VGA mampu bekerja stabil ketika sistem dijalankan. Evaluasi ini melengkapi pengujian CNN karena sistem akhir tidak hanya berupa akselerator, tetapi sistem embedded vision end-to-end.
+		Evaluasi jalur memori dilakukan dengan melihat apakah \emph{double frame
+		memory} dan CNN mampu bekerja stabil ketika sistem dijalankan. Evaluasi ini
+		melengkapi pengujian CNN karena sistem akhir tidak hanya berupa akselerator,
+		tetapi sistem pemrosesan citra berbasis memori berganda.
 
 \section{Tahapan Pelaksanaan}
 Tahapan pelaksanaan penelitian ini ditunjukkan pada
@@ -720,8 +666,9 @@ Gambar~\ref{fig:diagram-alir-penelitian}. Penelitian
 diawali dengan studi literatur untuk memahami konsep
 implementasi CNN pada
 FPGA, teknik kuantisasi \emph{fixed-point}, serta
-sistem pendukung seperti kamera, memori DDR, dan
-tampilan VGA. Setelah itu, model CNN dikembangkan
+	sistem pendukung seperti memori DDR sebagai
+	\emph{double frame memory}. Setelah itu, model CNN
+	dikembangkan
 terlebih dahulu menggunakan Python sebagai model acuan.
 Model yang telah diperoleh kemudian dikonversi ke
 representasi \emph{fixed-point} 16-bit agar lebih sesuai
@@ -739,12 +686,12 @@ Verilog. Hasil implementasi Verilog kemudian dibandingkan
 dengan hasil model Python melalui pengujian
 \emph{bit-difference} untuk memastikan bahwa proses
 komputasi pada hardware tetap mengikuti model acuan.
-Tahap berikutnya adalah pengujian dasar hardware menggunakan
-\emph{debug} ILA untuk memastikan blok kamera, FIFO, DDR,
-dan VGA dapat bekerja dengan benar sebelum dilakukan
-integrasi sistem. Setelah seluruh blok tervalidasi, sistem
-diintegrasikan menjadi alur lengkap mulai dari pengambilan
-citra, pemrosesan CNN, hingga evaluasi hasil inferensi.
+	Tahap berikutnya adalah pengujian dasar hardware menggunakan
+	\emph{debug} ILA untuk memastikan blok FIFO, DDR,
+	dan CNN dapat bekerja dengan benar sebelum dilakukan
+	integrasi sistem. Setelah seluruh blok tervalidasi, sistem
+	diintegrasikan menjadi alur lengkap mulai dari penyimpanan
+	citra, pemrosesan CNN, hingga evaluasi hasil inferensi.
 
 \begin{figure}[H]
 	\centering

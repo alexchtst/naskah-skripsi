@@ -273,16 +273,33 @@ Timing closure ini penting karena desain dengan penggunaan DSP tinggi berpotensi
 
 Tabel latensi menunjukkan jumlah siklus yang dibutuhkan hingga keluaran pada beberapa tahap CNN tersedia. Kenaikan siklus pada blok yang lebih dalam menunjukkan bahwa beban komputasi bertambah seiring peningkatan jumlah channel dan operasi MAC.
 
-Conv2 dan Conv3 menjadi bagian yang lebih berat karena jumlah channel dan filter lebih besar dibandingkan blok awal. Penggunaan time multiplexing membantu menekan penggunaan DSP, tetapi menambah jumlah siklus karena sebagian operasi harus dikerjakan secara bergantian. Throughput yang dihitung dari latensi akhir menunjukkan kemampuan inferensi accelerator, sedangkan interpretasinya tetap perlu dikaitkan dengan kebutuhan sistem kamera dan tampilan pada integrasi penuh.
-    \subsection{Hasil Uji Sanitasi OV7670}
-    \subsection{Hasil Uji Sanitasi VGA Pmod}
-    \subsection{Hasil Uji Akses DDR3 SDRAM}
+Conv2 dan Conv3 menjadi bagian yang lebih berat karena jumlah channel dan filter lebih besar dibandingkan blok awal. Penggunaan time multiplexing membantu menekan penggunaan DSP, tetapi menambah jumlah siklus karena sebagian operasi harus dikerjakan secara bergantian. Throughput yang dihitung dari latensi akhir menunjukkan kemampuan inferensi accelerator, sedangkan interpretasinya tetap perlu dikaitkan dengan kebutuhan perpindahan data pada \emph{double frame memory}.
+    \subsection{Hasil Uji Double Frame Memory}
+Pengujian \emph{double frame memory} menunjukkan bahwa transaksi baca dan tulis melalui MIG dan AXI dapat berjalan setelah proses kalibrasi selesai. Validasi dilakukan terhadap kestabilan akses alamat, perpindahan buffer, dan kesesuaian data yang ditulis dan dibaca kembali.
 
 \section{Hasil Integrasi Sistem}
-    \subsection{Hasil Integrasi OV7670, DDR, dan VGA}
+    \subsection{Hasil Integrasi Double Frame Memory}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.95\textwidth]{gambar/hasil-debug-ila-double-frame-memory.png}
+		\caption{Hasil \emph{debug} ILA pada \emph{double frame memory}}
+		\label{fig:ila-double-frame-memory}
+	\end{figure}
+
+Gambar~\ref{fig:ila-double-frame-memory} memperlihatkan hasil pengamatan
+melalui \emph{Integrated Logic Analyzer} pada saat \emph{double frame memory}
+berjalan. Konfigurasi alamat dasar yang digunakan adalah
+\texttt{base\_address\_memory\_0 = 0x80000000} dan
+\texttt{base\_address\_memory\_1 = 0x80200000}. Dari waveform tersebut,
+terlihat bahwa \emph{frame address} berhasil berpindah atau terswap dengan baik
+di antara dua region alamat tersebut, sehingga buffer aktif dan buffer cadangan
+berfungsi sesuai rancangan. Hasil ini menunjukkan bahwa mekanisme perpindahan
+frame pada memori berjalan konsisten dan sesuai dengan konfigurasi yang
+ditetapkan.
+
 	\begin{table}[H]
 		\centering
-		\caption{Hasil \emph{Streaming Flow Implement Running}}
+		\caption{Hasil \emph{Double Frame Memory Implement Running}}
 		\label{implement-run-hardware}
 		\begin{tabular}{|l|l|l|}
 			\hline
@@ -296,11 +313,11 @@ Conv2 dan Conv3 menjadi bagian yang lebih berat karena jumlah channel dan filter
     	\end{tabular}
 	\end{table}
 
-    \subsection{Hasil Integrasi CNN Accelerator dengan OV7670, DDR, dan VGA}
+    \subsection{Hasil Integrasi CNN Accelerator dengan Double Frame Memory}
 
-Tabel resource streaming flow menunjukkan penggunaan resource untuk jalur OV7670, DDR, dan VGA tanpa CNN accelerator. DSP tidak digunakan pada jalur ini karena blok streaming lebih banyak tersusun dari logika kendali, buffer, dan pengaturan alamat.
+Tabel resource \emph{double frame memory} menunjukkan penggunaan resource untuk jalur memori tanpa CNN accelerator. DSP tidak digunakan pada jalur ini karena blok memori lebih banyak tersusun dari logika kendali, buffer, dan pengaturan alamat.
 
-Hasil ini menunjukkan bahwa subsistem video relatif ringan dibandingkan CNN accelerator. Dengan demikian, konsumsi resource terbesar pada sistem akhir diperkirakan tetap berasal dari blok CNN, terutama operasi MAC berbasis DSP.
+Hasil ini menunjukkan bahwa subsistem memori relatif ringan dibandingkan CNN accelerator. Dengan demikian, konsumsi resource terbesar pada sistem akhir diperkirakan tetap berasal dari blok CNN, terutama operasi MAC berbasis DSP.
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=0.95\textwidth]{gambar/full-sistem.png}
@@ -308,9 +325,9 @@ Hasil ini menunjukkan bahwa subsistem video relatif ringan dibandingkan CNN acce
 		\label{fig:full-system-design}
 	\end{figure}
 
-Gambar~\ref{fig:full-system-design} menunjukkan desain akhir integrasi sistem. Alur sistem menggabungkan kamera OV7670, DDR sebagai frame buffer, VGA sebagai tampilan, ROI, CNN accelerator, dan argmax.
+Gambar~\ref{fig:full-system-design} menunjukkan desain akhir integrasi sistem. Alur sistem menggabungkan \emph{double frame memory}, CNN accelerator, dan argmax sebagai jalur utama pemrosesan.
 
-Integrasi ini menjadi kontribusi utama penelitian karena sistem tidak berhenti pada pengujian accelerator terpisah. CNN ditempatkan sebagai bagian dari alur embedded vision sehingga data visual dapat diakuisisi, disimpan, dipilih, diproses, dan ditampilkan dalam satu platform FPGA.
+Integrasi ini menjadi kontribusi utama penelitian karena sistem tidak berhenti pada pengujian accelerator terpisah. CNN ditempatkan sebagai bagian dari alur pemrosesan citra berbasis memori sehingga data dapat disimpan, dipilih dari buffer aktif, diproses, dan dikeluarkan dalam satu platform FPGA.
 
     \subsection{Hasil Penggunaan Resource Sistem Terintegrasi}
 	\begin{table}[H]
@@ -378,7 +395,7 @@ Hasil ini memperlihatkan bahwa sistem masih dapat ditempatkan pada Arty A7-100T 
 
     \subsection{Hasil Estimasi Daya Sistem Terintegrasi}
 
-Hasil routing dan timing sistem terintegrasi menunjukkan seluruh net berhasil dirutekan dan nilai WNS tetap positif. Hal ini mengindikasikan bahwa penambahan subsistem kamera, DDR, VGA, dan CNN tidak menyebabkan pelanggaran timing pada constraint yang digunakan.
+Hasil routing dan timing sistem terintegrasi menunjukkan seluruh net berhasil dirutekan dan nilai WNS tetap positif. Hal ini mengindikasikan bahwa penambahan subsistem \emph{double frame memory} dan CNN tidak menyebabkan pelanggaran timing pada constraint yang digunakan.
 
 Timing closure pada sistem penuh penting karena integrasi sering menambah jalur kontrol dan interkoneksi yang dapat memperpanjang jalur kritis. Hasil ini menunjukkan bahwa desain akhir tidak hanya berhasil secara fungsional, tetapi juga layak dari sisi implementasi fisik pada FPGA.
 
@@ -457,9 +474,9 @@ Evaluasi ini juga menunjukkan batas penting dari penelitian: FPGA menjalankan in
 
 Resource, latensi, dan daya menunjukkan trade-off utama pada rancangan ini. Penggunaan DSP yang hampir penuh memperlihatkan bahwa operasi MAC menjadi pusat beban komputasi, sedangkan time multiplexing membantu menjaga desain tetap muat pada FPGA dengan konsekuensi bertambahnya jumlah siklus.
 
-Latensi akhir CNN accelerator masih berada pada skala mikrodetik berdasarkan clock 100 MHz, sehingga secara komputasi blok CNN memiliki throughput inferensi yang tinggi. Pada sistem penuh, kemampuan real-time tidak hanya ditentukan oleh accelerator, tetapi juga oleh jalur kamera, DDR, ROI, dan VGA. Estimasi daya yang rendah memperkuat relevansi FPGA untuk embedded vision, meskipun validasi daya langsung tetap diperlukan untuk memperoleh nilai konsumsi aktual pada board.
+Latensi akhir CNN accelerator masih berada pada skala mikrodetik berdasarkan clock 100 MHz, sehingga secara komputasi blok CNN memiliki throughput inferensi yang tinggi. Pada sistem penuh, kemampuan real-time tidak hanya ditentukan oleh accelerator, tetapi juga oleh jalur \emph{double frame memory}. Estimasi daya yang rendah memperkuat relevansi FPGA untuk pemrosesan citra berbasis memori berganda, meskipun validasi daya langsung tetap diperlukan untuk memperoleh nilai konsumsi aktual pada board.
 	\subsection{Pembahasan Ketercapaian Sistem terhadap Tujuan Penelitian}
 
-Berdasarkan hasil implementasi, tujuan perancangan CNN accelerator fixed-point 16-bit tercapai karena model berhasil dipetakan ke Verilog dan dievaluasi terhadap baseline Python. Tujuan integrasi juga tercapai melalui penggabungan OV7670, DDR, VGA, ROI, CNN accelerator, dan argmax dalam desain sistem akhir.
+Berdasarkan hasil implementasi, tujuan perancangan CNN accelerator fixed-point 16-bit tercapai karena model berhasil dipetakan ke Verilog dan dievaluasi terhadap baseline Python. Tujuan integrasi juga tercapai melalui penggabungan \emph{double frame memory}, CNN accelerator, dan argmax dalam desain sistem akhir.
 
 Dari sisi performa, hasil menunjukkan bahwa evaluasi akurasi, perbedaan Python-Verilog, latency, resource, timing, dan daya telah dilakukan tanpa mengubah arsitektur model maupun hasil eksperimen. Keterbatasan utama penelitian berada pada margin DSP yang sangat kecil dan penggunaan estimasi daya dari tool, sehingga pengembangan selanjutnya perlu mempertimbangkan optimasi resource, pengukuran daya langsung, dan pengujian pada skenario citra nyata yang lebih bervariasi.
