@@ -9,11 +9,11 @@
 		\label{fig:model-dataset}
 	\end{figure}
 
-    \subsection{Arsitektur Target Model CNN}
-
 Gambar~\ref{fig:model-dataset} menunjukkan distribusi data latih yang digunakan pada proses pelatihan model CNN. Distribusi kelas yang relatif seimbang penting karena model tidak diarahkan untuk lebih sering melihat satu kelas tertentu dibandingkan kelas lain.
 
 Keseimbangan distribusi tersebut membantu mengurangi risiko bias klasifikasi terhadap digit tertentu. Dalam konteks implementasi pada FPGA, tahap ini tetap penting karena kualitas model hardware ditentukan terlebih dahulu oleh model software yang menjadi sumber bobot dan bias.
+
+    \subsection{Arsitektur Target Model CNN}
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=0.95\textwidth]{gambar/cnn architecture.png}
@@ -21,11 +21,21 @@ Keseimbangan distribusi tersebut membantu mengurangi risiko bias klasifikasi ter
 		\label{fig:model-architecture}
   	\end{figure}
 
+Gambar~\ref{fig:model-architecture} memperlihatkan arsitektur CNN yang digunakan
+sebagai target implementasi. Model terdiri dari konfigurasi layer konvolusi dan
+neural network dengan aktivasi ReLU. Layer konvolusi digunakan untuk ekstraksi
+fitur citra, sedangkan pooling yang digunakan adalah max pool untuk mereduksi
+dimensi feature map.
+
+Hasil ekstraksi fitur dari blok konvolusi dan max pool kemudian diproses oleh
+neural network untuk melakukan pemetaan ke sepuluh label keluaran, yaitu digit
+0 sampai 9. Pemilihan arsitektur yang relatif kecil merupakan keputusan
+engineering yang sesuai dengan keterbatasan resource FPGA. Model tetap
+mempertahankan kemampuan ekstraksi fitur bertingkat, tetapi jumlah parameter dan
+operasi dijaga agar masih layak dipetakan ke DSP, BRAM, LUT, dan FF pada Arty
+A7-100T.
+
     \subsection{Hasil Pelatihan Model CNN}
-
-Gambar~\ref{fig:model-architecture} memperlihatkan arsitektur CNN yang digunakan sebagai target implementasi. Model terdiri dari beberapa blok konvolusi, aktivasi, pooling, dan lapisan fully connected untuk menghasilkan sepuluh kelas digit.
-
-Pemilihan arsitektur yang relatif kecil merupakan keputusan engineering yang sesuai dengan keterbatasan resource FPGA. Model tetap mempertahankan kemampuan ekstraksi fitur bertingkat melalui tiga blok konvolusi, tetapi jumlah parameter dan operasi dijaga agar masih layak dipetakan ke DSP, BRAM, LUT, dan FF pada Arty A7-100T.
 	\begin{figure}[H]
       \centering
       \includegraphics[width=0.95\textwidth]{gambar/best_plot_loss.png}
@@ -33,7 +43,7 @@ Pemilihan arsitektur yang relatif kecil merupakan keputusan engineering yang ses
       \label{fig:training-loss}
   	\end{figure}
 
-Gambar~\ref{fig:training-loss} menunjukkan perubahan nilai loss selama proses pelatihan. Tren penurunan loss mengindikasikan bahwa proses optimasi berjalan menuju kondisi yang lebih stabil dan tidak menunjukkan pola divergensi pada kurva yang ditampilkan.
+Gambar~\ref{fig:training-loss} menunjukkan perubahan nilai loss selama proses pelatihan. Tren penurunan loss mengindikasikan bahwa proses optimasi berjalan menuju kondisi yang lebih stabil dan tidak menunjukkan pola divergensi pada kurva yang ditampilkan. Pada akhir pelatihan, nilai loss yang diperoleh adalah 0,01.
 
 Penurunan loss menjadi dasar bahwa parameter yang dihasilkan dapat digunakan sebagai baseline sebelum dipindahkan ke fixed-point. Dengan demikian, evaluasi hardware tidak dimulai dari model yang belum konvergen, melainkan dari model software yang telah memiliki perilaku pelatihan yang teramati.
 	\begin{figure}[H]
@@ -43,7 +53,7 @@ Penurunan loss menjadi dasar bahwa parameter yang dihasilkan dapat digunakan seb
       	\label{fig:training-acc}
   	\end{figure}
 
-Gambar~\ref{fig:training-acc} memperlihatkan perubahan akurasi selama pelatihan. Peningkatan akurasi yang mengikuti penurunan loss menunjukkan bahwa model semakin mampu memetakan fitur citra ke kelas digit yang benar.
+Gambar~\ref{fig:training-acc} memperlihatkan perubahan akurasi selama pelatihan. Peningkatan akurasi yang mengikuti penurunan loss menunjukkan bahwa model semakin mampu memetakan fitur citra ke kelas digit yang benar. Akurasi akhir model mencapai 97,2\%.
 
 Stabilitas akurasi pada akhir pelatihan mengindikasikan bahwa model memiliki kemampuan generalisasi awal yang cukup untuk digunakan sebagai acuan implementasi hardware. Hasil ini juga menjadi pembanding ketika keluaran Verilog dievaluasi terhadap keluaran Python.
 	\begin{figure}[H]
@@ -196,11 +206,11 @@ Secara arsitektural, desain ini menunjukkan bahwa CNN tidak dijalankan sebagai i
 		\end{tabular}
 	\end{table}
 
+Tabel~\ref{implement-run-cnn} menunjukkan bahwa penggunaan resource CNN accelerator masih dapat ditempatkan pada Arty A7-100T, tetapi dengan tekanan paling besar pada DSP. Dari tabel tersebut, LUT yang digunakan adalah 13.742 atau 22,11\%, Flip-Flop 27.135 atau 21,4\%, dan Block RAM 18 atau 13,33\%. Ketiga resource ini masih memiliki ruang yang relatif besar, sehingga kebutuhan logika kontrol, register pipeline, dan penyimpanan data antara tidak menjadi batas utama pada rancangan CNN accelerator.
+
+Resource yang paling dominan adalah DSP Slice, yaitu 232 DSP48E1 atau 97,91\% dari kapasitas yang tersedia. Kondisi ini sesuai dengan karakter CNN accelerator karena operasi utama pada layer konvolusi dan dense adalah MAC yang membutuhkan perkalian dan akumulasi berulang. Penggunaan DSP yang hampir penuh menunjukkan bahwa rancangan memprioritaskan percepatan operasi aritmetika, sedangkan penerapan \emph{time multiplexing} pada beberapa layer menjadi strategi untuk menjaga desain tetap muat pada FPGA. Implikasinya, pengembangan model yang lebih besar atau penambahan paralelisme perlu mempertimbangkan keterbatasan DSP sebagai faktor utama.
+
     \subsection{Hasil Timing CNN Accelerator}
-
-Tabel penggunaan resource CNN accelerator menunjukkan bahwa DSP menjadi resource yang paling dominan digunakan, sedangkan LUT, FF, dan BRAM masih menyisakan ruang yang lebih besar. Kondisi ini wajar karena operasi utama CNN adalah MAC yang secara efektif dipetakan ke DSP48E1.
-
-Penggunaan DSP yang hampir penuh menunjukkan bahwa rancangan memprioritaskan percepatan operasi perkalian dan akumulasi. Di sisi lain, penerapan time multiplexing pada layer tertentu menjadi strategi penting untuk menekan kebutuhan resource agar desain tetap dapat diimplementasikan pada Arty A7-100T. Trade-off yang muncul adalah peningkatan jumlah siklus pada layer yang memakai ulang unit komputasi.
 
 	\begin{table}[htbp]
 	\centering
@@ -244,11 +254,12 @@ Penggunaan DSP yang hampir penuh menunjukkan bahwa rancangan memprioritaskan per
 		\end{tabular}
 	\end{table}
 
+Tabel hasil routing CNN accelerator menunjukkan bahwa tidak terdapat \emph{conflict nets}, \emph{unrouted nets}, maupun \emph{partially routed nets}. Seluruh jaringan yang digunakan pada desain berhasil dirutekan, ditunjukkan oleh nilai \emph{fully routed nets} sebesar 44.973. Hasil ini menandakan bahwa proses implementasi fisik CNN accelerator berhasil menyambungkan seluruh jalur antarblok logika, register, memori, dan DSP tanpa menyisakan koneksi yang gagal dirutekan.
+
+Tabel \emph{CNN Accelerator Delayed Design} menunjukkan hasil analisis timing setelah implementasi. Nilai WNS sebesar 0,121 dan TNS sebesar 0,00 menunjukkan bahwa tidak ada jalur setup yang melanggar constraint waktu. Nilai WHS sebesar 0,010 dan WBSS sebesar 0,00 juga menunjukkan bahwa tidak ada pelanggaran hold yang signifikan pada desain. Dengan demikian, CNN accelerator telah memenuhi timing closure pada konfigurasi yang digunakan, meskipun penggunaan DSP sangat tinggi dan operasi MAC berpotensi membentuk jalur kritis yang panjang.
+
     \subsection{Hasil Latensi dan Throughput CNN Accelerator}
 
-Hasil routing dan timing CNN accelerator menunjukkan tidak adanya conflict nets, unrouted nets, maupun partially routed nets. Nilai WNS yang positif menunjukkan bahwa desain memenuhi constraint waktu pada implementasi yang dilaporkan.
-
-Timing closure ini penting karena desain dengan penggunaan DSP tinggi berpotensi mengalami jalur kritis yang panjang. Hasil tersebut mengindikasikan bahwa pipeline, register, dan pembagian alur komputasi sudah cukup untuk membuat CNN accelerator dapat berjalan pada clock target.
 	\begin{table}[H]
 		\centering
 		\caption{Hasil Latensi CNN Accelerator}
@@ -268,34 +279,49 @@ Timing closure ini penting karena desain dengan penggunaan DSP tinggi berpotensi
 		Throughput = \frac{1}{38,02 \times 10^{-6}} = 26302 \text{ inferensi/s}
 	\end{equation}
 
+Tabel latensi menunjukkan jumlah siklus yang dibutuhkan hingga keluaran pada
+beberapa tahap CNN tersedia. Keluaran Block 1 diperoleh pada 98 siklus, Block 2
+pada 545 siklus, Frame Done pada 788 siklus, Block 3 pada 2457 siklus, dan
+Dense Output pada 3802 siklus. Pada clock 100 MHz, latensi akhir sampai keluaran
+dense adalah 38,02 $\mu$s.
+
+Kenaikan jumlah siklus pada blok yang lebih dalam menunjukkan bahwa beban
+komputasi bertambah seiring peningkatan jumlah channel, filter, dan operasi MAC.
+Throughput yang dihitung dari latensi akhir menghasilkan 26302 inferensi/s,
+sehingga CNN accelerator memiliki kemampuan inferensi yang tinggi pada level
+komputasi. Nilai ini tetap perlu dibaca sebagai performa blok accelerator,
+sedangkan kinerja sistem penuh juga dipengaruhi oleh aliran data pada memori.
+
 
 \section{Hasil Pengujian Modul Perangkat Keras}
 
-Tabel latensi menunjukkan jumlah siklus yang dibutuhkan hingga keluaran pada beberapa tahap CNN tersedia. Kenaikan siklus pada blok yang lebih dalam menunjukkan bahwa beban komputasi bertambah seiring peningkatan jumlah channel dan operasi MAC.
-
-Conv2 dan Conv3 menjadi bagian yang lebih berat karena jumlah channel dan filter lebih besar dibandingkan blok awal. Penggunaan time multiplexing membantu menekan penggunaan DSP, tetapi menambah jumlah siklus karena sebagian operasi harus dikerjakan secara bergantian. Throughput yang dihitung dari latensi akhir menunjukkan kemampuan inferensi accelerator, sedangkan interpretasinya tetap perlu dikaitkan dengan kebutuhan perpindahan data pada \emph{double frame memory}.
     \subsection{Hasil Uji Double Frame Memory}
-Pengujian \emph{double frame memory} menunjukkan bahwa transaksi baca dan tulis melalui MIG dan AXI dapat berjalan setelah proses kalibrasi selesai. Validasi dilakukan terhadap kestabilan akses alamat, perpindahan buffer, dan kesesuaian data yang ditulis dan dibaca kembali.
-
-\section{Hasil Integrasi Sistem}
-    \subsection{Hasil Integrasi Double Frame Memory}
-	\begin{figure}[H]
+		\begin{figure}[H]
 		\centering
 		\includegraphics[width=0.95\textwidth]{gambar/hasil-debug-ila-double-frame-memory.png}
 		\caption{Hasil \emph{debug} ILA pada \emph{double frame memory}}
 		\label{fig:ila-double-frame-memory}
 	\end{figure}
-
+	
 Gambar~\ref{fig:ila-double-frame-memory} memperlihatkan hasil pengamatan
 melalui \emph{Integrated Logic Analyzer} pada saat \emph{double frame memory}
-berjalan. Konfigurasi alamat dasar yang digunakan adalah
-\texttt{base\_address\_memory\_0 = 0x80000000} dan
-\texttt{base\_address\_memory\_1 = 0x80200000}. Dari waveform tersebut,
-terlihat bahwa \emph{frame address} berhasil berpindah atau terswap dengan baik
-di antara dua region alamat tersebut, sehingga buffer aktif dan buffer cadangan
-berfungsi sesuai rancangan. Hasil ini menunjukkan bahwa mekanisme perpindahan
-frame pada memori berjalan konsisten dan sesuai dengan konfigurasi yang
-ditetapkan.
+berjalan. Sinyal alamat baca dan tulis bergerak pada area alamat DDR yang
+berbeda, sehingga proses akses memori tidak berhenti pada satu alamat tetap.
+Pergerakan \emph{current address} ini menunjukkan bahwa transaksi memori berjalan
+setelah proses kalibrasi selesai dan sistem mampu mengakses frame yang disimpan
+pada DDR.
+
+Hasil pengamatan juga menunjukkan mekanisme pertukaran buffer berjalan dengan
+baik. Sinyal indeks buffer tulis dan buffer baca (\emph{buffer\_write\_index}
+dan \emph{buffer\_read\_index}) berada pada buffer yang berbeda, sehingga proses
+tulis dan baca tidak menggunakan buffer yang sama secara bersamaan. Selain itu,
+sinyal error tetap bernilai 0 dan tidak terlihat indikasi error dari
+\emph{async FIFO}. Dengan demikian, \emph{double frame memory} dapat melakukan
+perpindahan buffer, menjaga aliran alamat, dan berjalan tanpa error FIFO pada
+skenario pengamatan ILA.
+
+\section{Hasil Integrasi Sistem}
+    \subsection{Hasil Integrasi Double Frame Memory}
 
 	\begin{table}[H]
 		\centering
@@ -310,17 +336,23 @@ ditetapkan.
           	Block RAM & 0.5 & 0.37 \\
           	DSP Slice & 0 & 0.0 \\
           	\hline
-    	\end{tabular}
-	\end{table}
+	    	\end{tabular}
+		\end{table}
 
-    \subsection{Hasil Integrasi CNN Accelerator dengan Double Frame Memory}
+Tabel~\ref{implement-run-hardware} menunjukkan bahwa integrasi \emph{double frame memory}
+menggunakan 6.969 LUT atau 11\% dari resource yang tersedia, 6.357 Flip-Flop
+atau 5,01\%, dan 0,5 Block RAM atau 0,37\%. Penggunaan DSP Slice bernilai 0
+karena blok ini tidak melakukan operasi aritmetika berat seperti MAC, tetapi
+lebih berperan sebagai jalur kendali, pengaturan alamat, dan mekanisme buffer
+untuk proses baca tulis frame. Hasil tersebut menunjukkan bahwa subsistem
+memori relatif ringan sehingga masih menyisakan resource FPGA yang besar untuk
+diintegrasikan dengan CNN accelerator.
 
-Tabel resource \emph{double frame memory} menunjukkan penggunaan resource untuk jalur memori tanpa CNN accelerator. DSP tidak digunakan pada jalur ini karena blok memori lebih banyak tersusun dari logika kendali, buffer, dan pengaturan alamat.
+	    \subsection{Hasil Integrasi CNN Accelerator dengan Double Frame Memory}
 
-Hasil ini menunjukkan bahwa subsistem memori relatif ringan dibandingkan CNN accelerator. Dengan demikian, konsumsi resource terbesar pada sistem akhir diperkirakan tetap berasal dari blok CNN, terutama operasi MAC berbasis DSP.
-	\begin{figure}[H]
-		\centering
-		\includegraphics[width=0.95\textwidth]{gambar/full-sistem.png}
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=0.95\textwidth]{gambar/full-sistem.png}
 		\caption{Desain Akhir Integrasi}
 		\label{fig:full-system-design}
 	\end{figure}
@@ -346,11 +378,11 @@ Integrasi ini menjadi kontribusi utama penelitian karena sistem tidak berhenti p
       	\end{tabular}
   	\end{table}
 
+Tabel~\ref{implement-run-fullimplementation} menunjukkan penggunaan resource pada sistem terintegrasi setelah \emph{double frame memory}, CNN accelerator, dan jalur kontrol digabungkan. Resource yang digunakan meliputi 20.755 LUT atau 32,74\%, 34.502 Flip-Flop atau 27,21\%, dan 19,5 Block RAM atau 14,44\%. Nilai ini menunjukkan bahwa kebutuhan logika, register, dan memori internal masih berada pada rentang yang dapat ditampung oleh Arty A7-100T.
+
+DSP Slice menjadi resource terbesar, yaitu 235 unit DSP atau 97,92\%. Hal ini menunjukkan bahwa CNN accelerator menjadi blok komputasi dominan karena operasi konvolusi dan dense membutuhkan banyak MAC. Dengan margin DSP yang sangat kecil, sistem masih dapat diimplementasikan pada FPGA, tetapi pengembangan model yang lebih besar atau penambahan paralelisme perlu mempertimbangkan keterbatasan DSP atau menggunakan strategi \emph{multiplexing} yang lebih agresif.
+
     \subsection{Hasil Timing Sistem Terintegrasi}
-
-Tabel resource sistem terintegrasi menunjukkan peningkatan penggunaan LUT, FF, BRAM, dan DSP dibandingkan subsistem streaming. DSP tetap hampir penuh karena CNN accelerator menjadi blok komputasi dominan, sedangkan LUT dan FF bertambah akibat integrasi kontrol, antarmuka, dan jalur data.
-
-Hasil ini memperlihatkan bahwa sistem masih dapat ditempatkan pada Arty A7-100T meskipun margin DSP sangat kecil. Implikasinya, pengembangan model yang lebih besar atau penambahan paralelisme baru perlu mempertimbangkan keterbatasan DSP atau menggunakan strategi multiplexing yang lebih agresif.
 	\begin{table}[htbp]
 	\centering
 		\caption{Hasil Routing Design}
@@ -395,9 +427,9 @@ Hasil ini memperlihatkan bahwa sistem masih dapat ditempatkan pada Arty A7-100T 
 
     \subsection{Hasil Estimasi Daya Sistem Terintegrasi}
 
-Hasil routing dan timing sistem terintegrasi menunjukkan seluruh net berhasil dirutekan dan nilai WNS tetap positif. Hal ini mengindikasikan bahwa penambahan subsistem \emph{double frame memory} dan CNN tidak menyebabkan pelanggaran timing pada constraint yang digunakan.
+	Hasil routing dan timing sistem terintegrasi menunjukkan seluruh net berhasil dirutekan dan nilai WNS tetap positif. Hal ini mengindikasikan bahwa penambahan subsistem \emph{double frame memory} dan CNN tidak menyebabkan pelanggaran timing pada constraint yang digunakan.
 
-Timing closure pada sistem penuh penting karena integrasi sering menambah jalur kontrol dan interkoneksi yang dapat memperpanjang jalur kritis. Hasil ini menunjukkan bahwa desain akhir tidak hanya berhasil secara fungsional, tetapi juga layak dari sisi implementasi fisik pada FPGA.
+	Timing closure pada sistem penuh penting karena integrasi sering menambah jalur kontrol dan interkoneksi yang dapat memperpanjang jalur kritis. Hasil ini menunjukkan bahwa desain akhir tidak hanya berhasil secara fungsional, tetapi juga layak dari sisi implementasi fisik pada FPGA.
 
 	\begin{table}[htbp]
 	\centering
@@ -420,50 +452,56 @@ Timing closure pada sistem penuh penting karena integrasi sering menambah jalur 
 		\label{fig:full-system-design-power}
 	\end{figure}
 
-Tabel dan Gambar~\ref{fig:full-system-design-power} menunjukkan estimasi daya sistem terintegrasi. Total on-chip power yang berada pada kisaran watt rendah mendukung motivasi penggunaan FPGA untuk embedded vision yang membutuhkan konsumsi daya lebih rendah dibandingkan platform komputasi umum.
+	Tabel dan Gambar~\ref{fig:full-system-design-power} menunjukkan estimasi daya sistem terintegrasi. Total on-chip power yang berada pada kisaran watt rendah mendukung motivasi penggunaan FPGA untuk embedded vision yang membutuhkan konsumsi daya lebih rendah dibandingkan platform komputasi umum.
 
-Hasil daya ini sejalan dengan literatur yang menempatkan FPGA sebagai alternatif efisien untuk inferensi visi, terutama ketika jalur komputasi dapat dibuat khusus dan tidak perlu menjalankan overhead software seperti CPU atau GPU \cite{Qasaimeh2019ComparingEE,Guo2019FPGANNAcceleratorSurvey}. Namun, nilai ini tetap merupakan estimasi implementasi sehingga pengukuran daya langsung pada board dapat menjadi pekerjaan lanjutan.
+	Hasil daya ini sejalan dengan literatur yang menempatkan FPGA sebagai alternatif efisien untuk inferensi visi, terutama ketika jalur komputasi dapat dibuat khusus dan tidak perlu menjalankan overhead software seperti CPU atau GPU \cite{Qasaimeh2019ComparingEE,Guo2019FPGANNAcceleratorSurvey}. Namun, nilai ini tetap merupakan estimasi implementasi sehingga pengukuran daya langsung pada board dapat menjadi pekerjaan lanjutan.
 
 \section{Hasil Evaluasi dan Pembahasan}
-    \subsection{Evaluasi Perbedaan Hasil Python dan Verilog}
+    \subsection{Perbandingan Hasil Python dan Verilog}
 	\begin{figure}[H]
-		\centering
-      	\includegraphics[width=0.95\textwidth]{gambar/train_results_all_labels_block1.png}
-      	\caption{Perbandingan \emph{Bit} dan \emph{Float value} pada \emph{Conv 1} dan \emph{Pool 1}}
-      	\label{fig:block1-bit-different}
-  	\end{figure}
+			\centering
+	      	\includegraphics[width=0.95\textwidth]{gambar/train_results_all_labels_block1.png}
+	      	\caption{Perbandingan \emph{Bit} dan \emph{Float value} pada \emph{Conv 1} dan \emph{Pool 1}}
+	      	\label{fig:conv1-pool1-diff}
+	  	\end{figure}
 
-	\begin{figure}[H]
-      	\centering
-      	\includegraphics[width=0.95\textwidth]{gambar/train_results_all_labels_block2.png}
-      	\caption{Perbandingan \emph{Bit} dan \emph{Float value} pada \emph{Conv 2} dan \emph{Pool 2}}
-      	\label{fig:block2-bit-different}
-  	\end{figure}
+Gambar~\ref{fig:conv1-pool1-diff} memperlihatkan hasil perbandingan keluaran blok konvolusi pertama dan pooling pertama antara baseline Python dan simulasi Verilog Icarus. Pada label 0 sampai 9, selisih integer fixed-point dan selisih float masih relatif kecil, sehingga tahap awal jaringan belum menunjukkan penyimpangan yang besar dari implementasi referensi. Pola ini menandakan bahwa representasi fixed-point pada blok awal masih mampu menjaga keluaran tetap dekat dengan nilai acuan Python.
 
 	\begin{figure}[H]
-      	\centering
-      	\includegraphics[width=0.95\textwidth]{gambar/train_results_all_labels_block3.png}
-      	\caption{Perbandingan \emph{Bit} dan \emph{Float value} pada \emph{Conv 3} dan \emph{Pool 3}}
-      	\label{fig:block3-bit-different}
-  	\end{figure}
+	      	\centering
+	      	\includegraphics[width=0.95\textwidth]{gambar/train_results_all_labels_block2.png}
+	      	\caption{Perbandingan \emph{Bit} dan \emph{Float value} pada \emph{Conv 2} dan \emph{Pool 2}}
+	      	\label{fig:conv2-pool2-diff}
+	  	\end{figure}
+
+Gambar~\ref{fig:conv2-pool2-diff} menunjukkan bahwa pada blok konvolusi kedua dan pooling kedua, selisih mulai tampak lebih besar dibandingkan blok pertama. Hal ini konsisten dengan akumulasi galat numerik pada layer yang lebih dalam, karena jumlah operasi MAC yang dilalui aktivasi semakin banyak. Meskipun demikian, besaran selisih float masih berada pada orde yang terkontrol sehingga perilaku layer tetap sejalan dengan baseline Python.
 
 	\begin{figure}[H]
-      	\centering
-      	\includegraphics[width=0.95\textwidth]{gambar/train_results_all_labels_blockdense.png}
-      	\caption{Perbandingan \emph{Bit} dan \emph{Float value} pada \emph{Dense 1} dan \emph{Dense 2}}
-      	\label{fig:blockdense-bit-different}
-  	\end{figure}
+	      	\centering
+	      	\includegraphics[width=0.95\textwidth]{gambar/train_results_all_labels_block3.png}
+	      	\caption{Perbandingan \emph{Bit} dan \emph{Float value} pada \emph{Conv 3} dan \emph{Pool 3}}
+	      	\label{fig:conv3-pool3-diff}
+	  	\end{figure}
+
+Gambar~\ref{fig:conv3-pool3-diff} memperlihatkan perbedaan yang paling menonjol di antara tiga blok konvolusi dan pooling. Wajar jika selisih pada layer ini lebih besar karena feature map yang diproses sudah melalui beberapa tahap pembulatan dan pemotongan bit sebelumnya. Selain itu, max pooling pada tahap ini juga dapat memperbesar efek kecil yang muncul pada hasil konvolusi sehingga galat numerik menjadi lebih terlihat pada beberapa label.
 
 	\begin{figure}[H]
-      	\centering
-      	\includegraphics[width=0.95\textwidth]{gambar/train_accuracy-argmax.png}
-      	\caption{Perbedaan Akurasi}
-      	\label{fig:argmax-bit-accuracy}
-  	\end{figure}
+	      	\centering
+	      	\includegraphics[width=0.95\textwidth]{gambar/train_results_all_labels_blockdense.png}
+	      	\caption{Perbandingan \emph{Bit} dan \emph{Float value} pada \emph{Dense 1} dan \emph{Dense 2}}
+	      	\label{fig:dense-diff}
+	  	\end{figure}
 
-Gambar~\ref{fig:block1-bit-different}, Gambar~\ref{fig:block2-bit-different}, Gambar~\ref{fig:block3-bit-different} dan Gambar~\ref{fig:blockdense-bit-different} memperlihatkan perbandingan nilai antara implementasi Python dan Verilog pada beberapa blok CNN. Perbandingan ini digunakan untuk menilai dampak fixed-point dan implementasi hardware terhadap nilai aktivasi di setiap tahap.
+Gambar~\ref{fig:dense-diff} memperlihatkan bahwa pada dense layer, FC1 cenderung memiliki selisih yang lebih besar daripada FC2. Ini menunjukkan bahwa galat fixed-point tidak terus bertambah sampai keluaran akhir, melainkan sebagian dapat teredam ketika fitur dipetakan ke sepuluh kelas keluaran. Dengan demikian, hasil akhirnya masih mempertahankan pola klasifikasi yang sama dengan baseline Python.
 
-Perbedaan nilai yang muncul merupakan konsekuensi dari pembulatan, pemotongan lebar bit, dan representasi fixed-point. Evaluasi bertahap diperlukan karena galat pada blok awal dapat memengaruhi blok berikutnya. Gambar~\ref{fig:argmax-bit-accuracy} kemudian digunakan untuk melihat apakah perbedaan numerik tersebut berdampak pada keputusan akhir setelah argmax.
+	\begin{figure}[H]
+	      	\centering
+	      	\includegraphics[width=0.95\textwidth]{gambar/train_accuracy-argmax.png}
+	      	\caption{Perbandingan Akurasi Verilog Simulation dan Actual Accuracy Dataset}
+	      	\label{fig:accuracy-comparison}
+	  	\end{figure}
+
+Gambar~\ref{fig:accuracy-comparison} memperlihatkan perbandingan akurasi simulasi Verilog Icarus terhadap actual accuracy dari baseline Python. Akurasi Verilog dihitung dari 100 sampel per label, sedangkan akurasi Python dihitung pada keseluruhan dataset uji. Karena cakupan data yang berbeda, grafik ini sebaiknya dibaca sebagai perbandingan performa pada skenario pengujian yang tidak identik, bukan sebagai pernyataan bahwa salah satu implementasi secara mutlak lebih baik. Pada sampel yang diuji, akurasi Verilog berada pada rentang 0,95 sampai 1,00 dengan rata-rata sekitar 98,1\%, dan hasil argmax tetap sama dengan baseline Python untuk sampel yang sama.
 
     \subsection{Evaluasi Hasil Inferensi Model pada FPGA}
 

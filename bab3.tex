@@ -483,10 +483,46 @@ perangkat keras \cite{Solovyev2019FixedPointCNN,Jacob2018Quantization}.
 	dan hasilnya digunakan sebagai keluaran sistem.
 
 \section{Metode Pengujian}
-    \subsection{Pengujian Akurasi Model di Python}
-	Pengujian akurasi Python digunakan sebagai acuan awal untuk menilai kemampuan model sebelum dipindahkan ke FPGA. Hasil ini tidak digunakan untuk mengubah arsitektur pada tahap hardware, tetapi sebagai baseline pembanding.
-    \subsection{Pengujian Perbedaan Hasil Python dan Verilog}
-	Pengujian ini membandingkan keluaran antara implementasi Python dan Verilog pada beberapa titik layer. Tujuannya adalah memastikan bahwa perbedaan numerik akibat fixed-point tetap terkontrol dan tidak mengubah keputusan kelas secara tidak terduga.
+    \subsection{Pengujian Model CNN di Python}
+	Pengujian model CNN di Python dilakukan untuk memperoleh baseline sebelum
+	model diimplementasikan ke dalam Verilog. Pengujian ini dilakukan terhadap data
+	latih dan data uji untuk melihat kemampuan model dalam mengenali citra digit
+	pada dataset MNIST. Hasil pengujian Python digunakan sebagai acuan utama karena
+	model pada tahap ini masih menggunakan representasi numerik yang lebih fleksibel
+	dibandingkan implementasi fixed-point pada hardware.
+
+	Pada tahap ini, setiap citra masukan diproses oleh model CNN untuk menghasilkan
+	kelas prediksi dari sepuluh kemungkinan digit. Data latih digunakan untuk
+	memastikan bahwa model telah mampu mempelajari pola dari dataset yang digunakan
+	selama pelatihan, sedangkan data uji digunakan untuk melihat kemampuan model
+	terhadap data yang tidak digunakan secara langsung dalam proses optimasi bobot.
+
+	Keluaran dari pengujian ini berupa label prediksi untuk setiap citra uji,
+	nilai akurasi baseline, serta informasi kesalahan klasifikasi yang nantinya
+	digunakan sebagai pembanding terhadap hasil implementasi fixed-point pada
+	Verilog dan FPGA.
+	\subsection{Pengujian Perbedaan Hasil Python dan Verilog}
+	Pengujian ini dilakukan untuk memperoleh keluaran antara dari implementasi
+	Python dan Verilog pada titik yang sama di dalam arsitektur CNN. Data yang
+	digunakan adalah data latih untuk seluruh label digit, dengan 100 sampel pada
+	setiap label. Susunan data tersebut digunakan agar pengujian tidak hanya
+	mewakili satu kelas tertentu, tetapi mencakup respons model terhadap seluruh
+	kelas pada dataset.
+
+	Urutan pengujian dimulai dengan menjalankan model acuan di Python untuk
+	menghasilkan keluaran setiap layer dan blok. Setelah itu, data masukan dan
+	parameter fixed-point yang sama diberikan ke testbench Verilog. Simulasi
+	Verilog dijalankan menggunakan Icarus Verilog secara bertahap pada blok
+	konvolusi, pooling, dan dense, sehingga keluaran tiap tahap dapat diamati
+	sebelum dilanjutkan ke tahap berikutnya.
+
+	Output yang dikumpulkan dari pengujian ini adalah nilai setiap \emph{feature}
+	pada setiap layer, baik berupa elemen pada \emph{feature map} maupun keluaran
+	neuron pada layer dense. Selain itu, hasil akhir argmax juga dikumpulkan untuk
+	melihat apakah perbedaan nilai antara Python dan Verilog berpengaruh terhadap
+	keputusan kelas. Dengan alur ini, pengujian menghasilkan data mentah yang
+	dapat digunakan pada tahap evaluasi perbedaan bit dan evaluasi akurasi hasil
+	inferensi.
     \subsection{Pengujian Penggunaan Kapasitas FPGA}
 	Pengujian kapasitas FPGA dilakukan dari laporan implementasi Vivado. Parameter
 	yang diamati meliputi LUT, FF, BRAM, dan DSP karena keempat resource tersebut
@@ -554,24 +590,51 @@ perangkat keras \cite{Solovyev2019FixedPointCNN,Jacob2018Quantization}.
 	terjadi merata pada seluruh kelas atau hanya dominan pada kelas tertentu.
 	Analisis ini digunakan untuk menilai apakah hasil inferensi hardware masih
 	konsisten terhadap baseline model Python.
-    \subsection{Evaluasi Perbedaan Bit}
-	Evaluasi perbedaan bit digunakan untuk melihat dampak representasi fixed-point
-	terhadap nilai antara pada setiap blok CNN. Evaluasi ini penting karena
-	kesalahan kecil pada layer awal dapat terakumulasi pada layer berikutnya.
-	Pada penelitian ini, keluaran antara dari implementasi Verilog dibandingkan
-	dengan keluaran baseline Python yang sudah dikonversi ke format fixed-point.
-	Dengan demikian, pembandingan tidak dilakukan langsung antara nilai
-	\emph{floating-point} dan nilai hardware, tetapi melalui representasi integer
-	fixed-point yang sama.
+	\subsection{Evaluasi Perbedaan Bit}
+	Evaluasi perbedaan bit digunakan untuk menilai data hasil pengujian Python
+	dan Verilog secara kuantitatif. Metrik yang dihitung meliputi selisih
+	integer fixed-point per \emph{feature}, galat nilai real \emph{float64},
+	rata-rata galat absolut, dan galat maksimum pada setiap layer atau blok CNN.
+	Jika $q_i^{py}$ adalah keluaran fixed-point dari Python dan $q_i^{v}$ adalah
+	keluaran fixed-point dari Verilog pada feature ke-$i$, maka perbedaan bit
+	dihitung sebagai berikut.
+	\begin{equation}
+		d_i^{bit} = \left| q_i^{v} - q_i^{py} \right|
+	\end{equation}
 
-	Pembacaan hasil dari Verilog memerlukan proses \emph{sign extension} karena
-	data yang ditangkap dari simulasi atau hasil dump hardware dapat terbaca
-	sebagai unsigned integer, padahal nilai aktivasi atau hasil akumulasi
-	menggunakan representasi two's complement bertanda. Oleh karena itu, nilai
-	unsigned perlu dikembalikan menjadi signed integer berdasarkan lebar bit yang
-	digunakan pada masing-masing blok. Selain itu, keluaran Python juga dikonversi
-	ke fixed-point dengan jumlah bit fraksi yang sama, yaitu $F=14$, agar
-	perbandingan bit dilakukan pada skala numerik yang setara.
+	Karena implementasi menggunakan fixed-point 16-bit Q2.14, nilai yang terbaca
+	perlu dikembalikan terlebih dahulu ke bilangan bertanda. Jika nilai bit 16
+	terbaca sebagai $b_{16}$, konversi ke signed integer dan \emph{float64}
+	dilakukan dengan persamaan berikut.
+	\begin{equation}
+		s_{16} =
+		\begin{cases}
+			b_{16}, & b_{16} < 2^{15} \\
+			b_{16} - 2^{16}, & b_{16} \geq 2^{15}
+		\end{cases}
+	\end{equation}
+	\begin{equation}
+		x_{\mathrm{float64}} = \frac{s_{16}}{2^{14}}
+	\end{equation}
+	Dengan cara ini, hasil Verilog dan Python dibaca pada skala numerik yang sama,
+	sehingga perbedaan fixed-point dapat diterjemahkan menjadi perbedaan nilai
+	aktivasi.
+
+	Setelah nilai Python dan Verilog berada pada skala \texttt{float64}, galat
+	pada feature ke-$i$ dihitung sebagai $e_i = x_i^{v} - x_i^{py}$. Untuk setiap
+	layer dengan $N$ feature, rata-rata galat absolut dan galat maksimum dihitung
+	menggunakan persamaan berikut.
+	\begin{equation}
+		MAE = \frac{1}{N}\sum_{i=1}^{N}\left| e_i \right|
+	\end{equation}
+	\begin{equation}
+		E_{max} = \max_{1 \leq i \leq N}\left| e_i \right|
+	\end{equation}
+	Hasil evaluasi dinilai dengan melihat apakah perbedaan bit dan galat
+	\texttt{float64} masih kecil pada setiap layer, tidak meningkat secara tidak
+	wajar pada layer berikutnya, dan tidak mengubah hasil argmax. Dengan demikian,
+	evaluasi tidak hanya melihat apakah terdapat perbedaan numerik, tetapi juga
+	apakah perbedaan tersebut signifikan terhadap alur inferensi CNN.
 
 	Potongan kode yang digunakan untuk proses evaluasi tersebut ditunjukkan pada
 	Kode~\ref{code:bit-difference-eval}. Fungsi \texttt{sign\_extend}
