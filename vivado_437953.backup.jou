@@ -1,0 +1,43 @@
+#-----------------------------------------------------------
+# Vivado v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 12:34:56 MST 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Fri Jun 19 14:22:30 2026
+# Process ID         : 437953
+# Current directory  : /home/ach/skripsi/naskah-skripsi
+# Command line       : vivado
+# Log file           : /home/ach/skripsi/naskah-skripsi/vivado.log
+# Journal file       : /home/ach/skripsi/naskah-skripsi/vivado.jou
+# Running On         : localhost
+# Platform           : Ubuntu
+# Operating System   : Ubuntu 22.04.3 LTS
+# Processor Detail   : AMD Ryzen 5 5500U with Radeon Graphics
+# CPU Frequency      : 3822.392 MHz
+# CPU Physical cores : 6
+# CPU Logical cores  : 12
+# Host memory        : 7609 MB
+# Swap memory        : 8589 MB
+# Total Virtual      : 16199 MB
+# Available Virtual  : 6493 MB
+#-----------------------------------------------------------
+start_gui
+open_project /home/ach/skripsi/fpga_cnn/fpga_cnn.xpr
+open_bd_design {/home/ach/skripsi/fpga_cnn/fpga_cnn.srcs/sources_1/bd/cnn_accelerator/cnn_accelerator.bd}
+update_compile_order -fileset sources_1
+write_bd_layout -format pdf -orientation landscape /home/ach/skripsi/naskah-skripsi/dokumen/cnn-accelrator-bd.pdf
+open_bd_design {/home/ach/skripsi/fpga_cnn/fpga_cnn.srcs/sources_1/bd/design_test_write/design_test_write.bd}
+write_bd_layout -format pdf -orientation landscape /home/ach/skripsi/naskah-skripsi/dokumen/cam-ddr-vga.pdf
+open_run impl_1
+report_clock_networks -name {network_results}
+report_clock_networks -name {network_results}
+close_design
+open_run synth_1 -name synth_1
+write_schematic -format pdf -orientation portrait /home/ach/skripsi/naskah-skripsi/dokumen/schematic.pdf
+write_schematic -format pdf -orientation landscape /home/ach/skripsi/naskah-skripsi/dokumen/schematic.pdf
+close_design
+current_bd_design [get_bd_designs cnn_accelerator]
+close_bd_design [get_bd_designs cnn_accelerator]
+current_bd_design [get_bd_designs design_test_write]
+close_bd_design [get_bd_designs design_test_write]
+close_project
