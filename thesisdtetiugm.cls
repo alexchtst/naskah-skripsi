@@ -263,9 +263,9 @@
 				\includegraphics[width=0.5\textwidth]{#1}
 				\vfill
 				\iftoggle{lang}{\textit{\textbf{\MakeUppercase{The Sustainable Development Goals}}}}{\textbf{\MakeUppercase{The Sustainable Development Goals}}}\\
-				\iftoggle{lang}{\textit{\textbf{Industry, Innovation and Infrastructure}}}{\textbf{Industry, Innovation and Infrastructure}}\\
 				\iftoggle{lang}{\textit{\textbf{Affordable and Clean Energy}}}{\textbf{Affordable and Clean Energy}}\\
-				\iftoggle{lang}{\textit{\textbf{Climate Action}}}{\textbf{Climate Action}}
+				\iftoggle{lang}{\textit{\textbf{Decent Wrok and Economic Growth}}}{\textbf{Decent Wrok and Economic Growth}}\\
+				\iftoggle{lang}{\textit{\textbf{Industry, Innovation and Infrastructure}}}{\textbf{Industry, Innovation and Infrastructure}}
 				\vfill
 				\iftoggle{lang}{\textbf{Disusun oleh:}}{Written by:}\\
 				\vspace{0.4em}
