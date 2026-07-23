@@ -1,0 +1,988 @@
+\chapter{TINJAUAN PUSTAKA DAN DASAR TEORI}
+
+\section{Tinjauan Pustaka}
+
+    Penelitian Che et al. dan Qasaimeh et al. menunjukkan bahwa pemilihan
+    platform komputasi untuk aplikasi visi sangat dipengaruhi oleh
+    karakteristik algoritma, latensi, dan kebutuhan energi
+    \cite{Che2009AcceleratingAA,Qasaimeh2019ComparingEE}. CPU memiliki
+    fleksibilitas tinggi, tetapi kurang efisien untuk komputasi CNN yang
+    membutuhkan paralelisme besar. GPU mampu memberikan throughput tinggi,
+    namun umumnya membutuhkan daya dan bandwidth memori yang lebih besar.
+    Dalam konteks tersebut, FPGA menjadi alternatif karena operasi CNN
+    seperti konvolusi, \emph{multiply-accumulate}, \emph{buffering}, dan
+    \emph{pipeline} dapat dipetakan langsung ke sumber daya perangkat keras
+    seperti DSP, BRAM, LUT, dan FF, sehingga sesuai untuk sistem
+    \emph{embedded vision} yang membutuhkan latensi rendah dan konsumsi
+    daya efisien \cite{XilinxWP389}.
+
+    Berdasarkan penelitian Solovyev et al., implementasi CNN pada FPGA
+    untuk \emph{real-time processing} dilakukan dengan mengubah
+    representasi \emph{floating-point} menjadi \emph{fixed-point} agar
+    lebih sesuai dengan komputasi perangkat keras
+    \cite{Solovyev2019FixedPointCNN}. Penelitian ini menggunakan dataset
+    MNIST dengan augmentasi berupa rotasi acak 10 derajat, inversi warna,
+    serta penambahan \emph{noise} dari $0\%$ sampai $10\%$. Setelah proses
+    pelatihan, parameter CNN disimpan ke dalam blok memori FPGA dan
+    digunakan pada proses inferensi. Implementasi dilakukan pada board
+    \emph{DE0-Nano} berbasis FPGA \emph{Intel Cyclone IV}, dengan masukan
+    citra dari kamera OV7670 dan keluaran tampilan melalui VGA. Citra dari
+    kamera direduksi menjadi \emph{grayscale} berukuran $28 \times 28$
+    piksel untuk diproses oleh CNN, sehingga sistem mampu berjalan secara
+    \emph{real-time} dengan kecepatan lebih dari 150 \emph{frame per second}.
+    Penelitian ini menghasilkan akurasi model yang tidak berubah dengan
+    model training sebelum kuantitasi.
+
+    Pada sisi kamera, penelitian Solovyev et al. juga memperlihatkan
+    penggunaan OV7670 sebagai sumber citra untuk sistem CNN berbasis
+    FPGA \cite{Solovyev2019FixedPointCNN}. Konfigurasi kamera OV7670
+    dilakukan melalui \emph{Serial Camera Control Bus} atau SCCB untuk
+    mengatur format keluaran citra, resolusi, dan mode operasi sensor
+    \cite{OmniVision2006OV7670}. Data piksel kemudian dikirim melalui
+    \emph{pixel clock}, bus data paralel, serta sinyal sinkronisasi
+    \emph{HREF} dan \emph{VSYNC}. Sinyal \emph{HREF} menandai data piksel
+    valid pada satu baris, sedangkan \emph{VSYNC} menandai pergantian
+    \emph{frame}. Sistem inferensi \emph{end-to-end} CNN berbasis kamera
+    tidak hanya membutuhkan akselerator inferensi, tetapi juga akuisisi
+    citra yang sinkron terhadap tampilan VGA.
+
+    Penelitian Qiu et al. mengimplementasikan CNN pada FPGA
+    \emph{Xilinx ZC706} dengan model \emph{VGG16-SVD} untuk klasifikasi
+    citra ImageNet menggunakan representasi 16-bit \emph{fixed-point}
+    \cite{Qiu2016GoingDeeperFPGA}. Hasil implementasi menunjukkan akurasi
+    \emph{top-5} sebesar $86.66\%$, performa inferensi sebesar 4.45 FPS,
+    \emph{throughput} sekitar 137 GOPS untuk keseluruhan jaringan, konsumsi
+    daya sebesar 9.63 W. Penelitian ini menunjukkan bahwa kuantisasi 16-bit
+    \emph{fixed-point} masih dapat mempertahankan akurasi yang layak pada
+    model CNN berskala besar. Dari sisi arsitektur, operasi konvolusi
+    menjadi bagian komputasi dominan sehingga pemetaan operasi
+    \emph{multiply-accumulate} ke DSP, penggunaan \emph{buffer}, serta
+    pengaturan akses memori menjadi faktor penting dalam meningkatkan
+    throughput.
+
+    Penelitian Dua et al. melalui arsitektur \emph{Systolic-CNN} menunjukkan
+    implementasi CNN berbasis \emph{OpenCL} pada FPGA dengan pendekatan
+    yang lebih fleksibel terhadap banyak model \cite{Dua2020SystolicCNN}.
+    Berbeda dari Solovyev et al. dan Qiu et al. yang menggunakan
+    \emph{fixed-point}, penelitian ini menggunakan format 32-bit
+    \emph{floating-point}. Model yang diuji meliputi \emph{AlexNet},
+    \emph{ResNet-50}, \emph{ResNet-152}, \emph{RetinaNet}, dan
+    \emph{Light-weight RetinaNet}. Implementasi dilakukan pada board
+    \emph{Intel Arria 10 GX1150} dan \emph{Intel Stratix 10 GX2800}.
+    Pada \emph{Arria 10}, inferensi \emph{AlexNet} membutuhkan waktu
+    sekitar 7 ms dan \emph{ResNet-50} sekitar 84 ms, sedangkan pada
+    \emph{Stratix 10} latensinya menjadi sekitar 2 ms dan 33 ms.
+    Paper ini tidak melaporkan konsumsi daya maupun efisiensi energi dalam
+    GOPS/W, sehingga lebih tepat digunakan sebagai referensi arsitektur
+    \emph{systolic array}, pemanfaatan DSP, dan fleksibilitas OpenCL.
+
+    Selain penelitian CNN, integrasi kamera dan tampilan juga ditunjukkan
+    oleh Navaneethan et al. melalui implementasi \emph{video streaming}
+    dari kamera OV7670 ke VGA pada board FPGA \emph{Spartan-6} dan
+    \emph{Artix-7} menggunakan Verilog dan Xilinx Vivado
+    \cite{Navaneethan2022OV7670VGA}. Penelitian ini tidak berfokus pada
+    inferensi CNN, tetapi menunjukkan bahwa jalur akuisisi kamera,
+    sinkronisasi piksel, dan tampilan VGA dapat diimplementasikan dengan
+    penggunaan sumber daya yang relatif kecil, yaitu 530
+    \emph{slice registers}. Hasil tersebut relevan sebagai pembanding
+    bagian antarmuka kamera dan display, terutama karena sistem CNN
+    berbasis kamera tetap membutuhkan jalur video yang stabil sebelum
+    citra diproses oleh akselerator.
+
+    Pada sistem yang memproses citra berukuran besar, penggunaan
+    \emph{frame buffer} menjadi penting karena data kamera dan data
+    tampilan bekerja pada aliran waktu yang berbeda. Untuk resolusi
+    VGA $640 \times 480$ dengan format RGB, kapasitas BRAM pada FPGA
+    umumnya tidak cukup untuk menyimpan satu atau dua \emph{frame}
+    penuh \cite{Sun2021MicroBlazeVideoProcessing}. Oleh karena itu, pada
+    rancangan ini DDR digunakan sebagai \emph{frame buffer}, sedangkan
+    akses baca dan tulis dikendalikan melalui antarmuka AXI menuju MIG.
+    AXI bertindak sebagai jalur transaksi antara modul \emph{master} dan
+    MIG sebagai pengendali DDR, dan proses akses memori dilakukan setelah
+    MIG selesai dikalibrasi \cite{Cosoroaba2013DDR3DataRates,Jacobo2021OV7670VGARepository}.
+
+    Berdasarkan penelitian-penelitian tersebut, dapat disimpulkan bahwa setiap
+    pendekatan memiliki fokus yang berbeda. Solovyev et al. telah menunjukkan
+    sistem CNN fixed-point berbasis Cyclone IV dengan kamera OV7670, VGA, dan
+    dataset MNIST, tetapi pembahasannya masih menggunakan arsitektur CNN yang
+    sederhana serta belum menekankan integrasi DDR sebagai frame buffer maupun
+    strategi resource multiplexing secara mendalam \cite{Solovyev2019FixedPointCNN}.
+    Qiu et al. menunjukkan bahwa representasi fixed-point 16-bit dapat digunakan
+    pada model besar seperti VGG16 di platform ZC706, tetapi fokus penelitian
+    tersebut berada pada akselerator CNN dan bukan pada integrasi sistem embedded
+    vision dengan kamera dan display \cite{Qiu2016GoingDeeperFPGA}. Sementara itu,
+    Navaneethan et al. membahas integrasi kamera OV7670 dan VGA, tetapi tidak
+    menyertakan akselerator CNN sebagai blok inferensi \cite{Navaneethan2022OV7670VGA}.
+
+    Celah penelitian yang muncul adalah kebutuhan untuk mengintegrasikan blok
+    akuisisi citra, penyimpanan frame, akselerator CNN, dan tampilan visual dalam
+    satu sistem FPGA yang berjalan end-to-end. Penelitian ini mengisi celah
+    tersebut dengan menggabungkan OV7670, DDR, VGA, ROI, CNN accelerator berbasis
+    fixed-point 16-bit, argmax, serta strategi time multiplexing pada board Arty
+    A7-100T. Dengan demikian, kontribusi penelitian tidak hanya berada pada
+    implementasi komputasi CNN, tetapi juga pada integrasi subsistem embedded
+    vision yang dapat menerima citra, menyimpan frame, menjalankan inferensi, dan
+    menampilkan keluaran dalam satu platform perangkat keras.
+
+\section{Landasan Teori}
+
+    \subsection{\emph{Neural Network}}
+    \emph{Neural network} merupakan model komputasi yang tersusun dari beberapa lapisan neuron buatan. Setiap neuron menerima sejumlah masukan, melakukan operasi penjumlahan berbobot, menambahkan bias, kemudian melewatkan hasilnya ke fungsi aktivasi. Mekanisme ini membuat \emph{neural network} mampu membentuk hubungan non-linear antara data masukan dan keluaran. Dalam konteks klasifikasi citra, lapisan-lapisan tersebut digunakan untuk mengubah data piksel menjadi representasi fitur yang kemudian dipetakan menjadi kelas tertentu \cite{Goodfellow2016DeepLearning}.
+
+    Operasi dasar pada sebuah neuron dapat dituliskan sebagai berikut:
+    \begin{equation}
+        z_j^{(l)} =
+        \sum_{i=1}^{N}
+        w_{j,i}^{(l)} a_i^{(l-1)}
+        + b_j^{(l)}
+        \label{eq:neuron_linear}
+    \end{equation}
+    \begin{equation}
+        a_j^{(l)} =
+        \phi \left( z_j^{(l)} \right)
+        \label{eq:neuron_activation}
+    \end{equation}
+    dengan $a_i^{(l-1)}$ adalah keluaran neuron dari lapisan sebelumnya, $w_{j,i}^{(l)}$ adalah bobot penghubung, $b_j^{(l)}$ adalah bias, $z_j^{(l)}$ adalah hasil penjumlahan berbobot, dan $\phi(\cdot)$ adalah fungsi aktivasi. Dalam bentuk matriks, operasi pada satu lapisan dapat ditulis sebagai:
+    \begin{equation}
+        \mathbf{a}^{(l)} =
+        \phi \left(
+        \mathbf{W}^{(l)} \mathbf{a}^{(l-1)}
+        + \mathbf{b}^{(l)}
+        \right)
+        \label{eq:nn_layer}
+    \end{equation}
+
+    Pada proses klasifikasi, keluaran akhir jaringan biasanya merepresentasikan skor untuk masing-masing kelas. Skor tersebut dapat diproses menggunakan fungsi \emph{softmax} agar menjadi nilai probabilitas:
+    \begin{equation}
+        \hat{y}_k =
+        \frac{e^{z_k}}
+        {\sum_{r=1}^{C} e^{z_r}}
+        \label{eq:softmax}
+    \end{equation}
+    dengan $\hat{y}_k$ adalah probabilitas untuk kelas ke-$k$ dan $C$ adalah jumlah kelas. Kelas prediksi kemudian dapat ditentukan dengan mengambil indeks yang memiliki nilai terbesar:
+    \begin{equation}
+        \hat{c} =
+        \operatorname*{argmax}_{k}(\hat{y}_k)
+        \label{eq:argmax}
+    \end{equation}
+    Pada CNN, konsep \emph{neural network} tetap digunakan, tetapi lapisan awal jaringan tidak langsung berbentuk \emph{fully connected}. Lapisan awal CNN menggunakan konvolusi agar proses ekstraksi fitur citra lebih efisien dan tetap mempertahankan informasi spasial dari masukan.
+
+    \subsection{CNN}
+    \emph{Convolutional Neural Network} (CNN) merupakan pengembangan dari \emph{neural network} yang dirancang khusus untuk mengolah data berbentuk grid, seperti citra digital. CNN memanfaatkan operasi konvolusi untuk mengekstraksi fitur lokal dari citra, kemudian menggabungkannya melalui beberapa lapisan agar jaringan dapat mengenali pola yang lebih kompleks. Pada lapisan awal, CNN biasanya menangkap fitur sederhana seperti tepi atau garis. Pada lapisan yang lebih dalam, fitur tersebut dapat berkembang menjadi bentuk, tekstur, atau pola yang lebih spesifik terhadap kelas tertentu \cite{Lecun1998GradientBasedLearning,Goodfellow2016DeepLearning}.
+
+    Secara umum, alur komputasi CNN dapat dipandang sebagai komposisi dari beberapa fungsi lapisan:
+    \begin{equation}
+        \mathbf{y} =
+        f_{\theta}(\mathbf{x}) =
+        g_L \left(
+        g_{L-1}
+        \left(
+        \cdots
+        g_2
+        \left(
+        g_1(\mathbf{x})
+        \right)
+        \cdots
+        \right)
+        \right)
+        \label{eq:cnn_composition}
+    \end{equation}
+    dengan $\mathbf{x}$ adalah citra masukan, $\mathbf{y}$ adalah keluaran jaringan, $g_l$ adalah operasi pada lapisan ke-$l$, dan $\theta$ adalah seluruh parameter yang dipelajari, seperti bobot dan bias. Lapisan pada CNN umumnya terdiri dari kombinasi konvolusi, fungsi aktivasi, \emph{pooling}, dan \emph{fully connected layer}. Kombinasi tersebut membuat CNN dapat melakukan ekstraksi fitur sekaligus klasifikasi dalam satu rangkaian komputasi.
+
+    Keunggulan CNN dibandingkan \emph{fully connected neural network} biasa adalah adanya konsep \emph{local connectivity} dan \emph{weight sharing}. \emph{Local connectivity} berarti neuron hanya terhubung pada area lokal dari citra, sedangkan \emph{weight sharing} berarti kernel yang sama digunakan berulang pada banyak posisi. Kedua konsep ini membuat jumlah parameter CNN lebih efisien dibandingkan jika seluruh piksel langsung dihubungkan ke neuron pada lapisan berikutnya. Hal ini menjadi salah satu alasan CNN banyak digunakan pada tugas pengenalan citra dan klasifikasi objek \cite{AlexNetPaper}.
+
+    Pada penelitian ini, CNN digunakan sebagai model utama untuk melakukan klasifikasi citra. Operasi yang paling dominan pada CNN adalah konvolusi karena melibatkan banyak operasi perkalian dan penjumlahan. Oleh karena itu, ketika CNN diimplementasikan pada FPGA, bagian konvolusi menjadi fokus utama untuk dioptimalkan melalui pemetaan operasi MAC, penggunaan format bilangan \emph{fixed-point}, dan pemanfaatan paralelisme perangkat keras. Dengan pendekatan tersebut, CNN dapat dijalankan sebagai akselerator perangkat keras yang lebih sesuai untuk sistem \emph{embedded vision} dan aplikasi \emph{real-time}.
+
+
+
+  \subsection{Konvolusi}
+  Konvolusi merupakan operasi utama pada \emph{Convolutional Neural Network} (CNN) yang digunakan untuk mengekstraksi fitur dari citra masukan. Pada operasi ini, sebuah \emph{kernel} atau \emph{filter} digeser pada area lokal citra untuk menghasilkan nilai fitur baru. Setiap nilai keluaran diperoleh dari hasil perkalian antara elemen citra dan elemen kernel, kemudian seluruh hasil perkalian tersebut dijumlahkan. Dengan mekanisme ini, konvolusi dapat menangkap pola lokal seperti tepi, garis, lengkungan, atau bentuk sederhana yang kemudian dapat digunakan oleh lapisan berikutnya untuk membentuk fitur yang lebih kompleks \cite{Goodfellow2016DeepLearning,Lecun1998GradientBasedLearning}.
+
+  Secara matematis, operasi konvolusi dua dimensi pada masukan dengan banyak kanal dapat dituliskan sebagai berikut:
+  \begin{equation}
+    y_{k,i,j} =
+    b_k +
+    \sum_{c=0}^{C_{\text{in}}-1}
+    \sum_{m=0}^{K_h-1}
+    \sum_{n=0}^{K_w-1}
+    x_{c,\,iS+m-P,\,jS+n-P}
+    \cdot
+    w_{k,c,m,n}
+    \label{eq:conv2d}
+  \end{equation}
+    dengan $x$ adalah data masukan, $w$ adalah bobot kernel, $b_k$ adalah bias pada kanal keluaran ke-$k$, $C_{\text{in}}$ adalah jumlah kanal masukan, $K_h$ dan $K_w$ adalah ukuran tinggi dan lebar kernel, $S$ adalah \emph{stride}, dan $P$ adalah \emph{padding}. Indeks $i$ dan $j$ menunjukkan posisi spasial pada \emph{feature map} keluaran.
+
+    Ukuran keluaran dari operasi konvolusi dipengaruhi oleh ukuran masukan, ukuran kernel, \emph{stride}, dan \emph{padding}. Jika tinggi dan lebar masukan adalah $H_{\text{in}}$ dan $W_{\text{in}}$, maka ukuran keluarannya dapat dihitung dengan:
+    \begin{equation}
+        H_{\text{out}} =
+        \left\lfloor
+        \frac{H_{\text{in}} + 2P - K_h}{S}
+        \right\rfloor + 1
+        \label{eq:conv_height}
+    \end{equation}
+    \begin{equation}
+        W_{\text{out}} =
+        \left\lfloor
+        \frac{W_{\text{in}} + 2P - K_w}{S}
+        \right\rfloor + 1
+        \label{eq:conv_width}
+    \end{equation}
+    Pada implementasi perangkat keras, persamaan konvolusi tersebut direalisasikan sebagai operasi \emph{multiply accumulate} (MAC), yaitu perkalian antara data dan bobot yang diikuti dengan penjumlahan akumulatif. Karena operasi ini dilakukan berulang pada banyak piksel dan banyak kernel, konvolusi menjadi bagian yang paling dominan dalam beban komputasi CNN.
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.95\textwidth]{gambar/cnn.png}
+        \caption{Operasi Konvolusi}
+        \label{fig:conv-operation}
+    \end{figure}
+
+    \subsection{\emph{Rectified Linear Unit} (ReLU)}
+    \emph{Rectified Linear Unit} (ReLU) merupakan fungsi aktivasi yang banyak digunakan pada CNN karena bentuknya sederhana dan efisien secara komputasi. Fungsi ini akan meneruskan nilai masukan jika bernilai positif, sedangkan nilai negatif akan diubah menjadi nol. Dengan demikian, ReLU memberikan sifat non-linear pada jaringan tanpa membutuhkan operasi matematika yang kompleks seperti eksponensial atau trigonometri \cite{Nair2010ReLU,AlexNetPaper}.
+
+    Fungsi ReLU dapat dituliskan sebagai:
+    \begin{equation}
+        f(x) =
+        \max(0, x)
+        \label{eq:relu}
+    \end{equation}
+    atau dalam bentuk fungsi potongan:
+    \begin{equation}
+        f(x) =
+        \begin{cases}
+            x, & x > 0 \\
+            0, & x \leq 0
+        \end{cases}
+        \label{eq:relu_piecewise}
+    \end{equation}
+    Turunan fungsi ReLU dapat dituliskan sebagai:
+    \begin{equation}
+        f'(x) =
+        \begin{cases}
+            1, & x > 0 \\
+            0, & x < 0
+        \end{cases}
+        \label{eq:relu_derivative}
+    \end{equation}
+    Pada titik $x=0$, turunan ReLU tidak terdefinisi secara matematis, tetapi pada implementasi jaringan saraf biasanya dapat dipilih sebagai 0 atau 1 sesuai kebutuhan implementasi.
+
+    Dalam implementasi perangkat keras, ReLU sangat sederhana karena hanya membutuhkan pembanding terhadap nol. Jika nilai masukan lebih besar dari nol, maka nilai tersebut diteruskan. Jika nilai masukan lebih kecil atau sama dengan nol, maka keluaran dibuat nol. Kesederhanaan ini membuat ReLU cocok digunakan pada akselerator CNN berbasis FPGA, terutama ketika sistem dirancang untuk menekan penggunaan sumber daya dan menjaga latensi komputasi tetap rendah.
+
+    \subsection{\emph{Max Pool}}
+    \emph{Max pool} merupakan operasi reduksi spasial yang digunakan untuk memperkecil ukuran \emph{feature map} dengan cara mengambil nilai maksimum dari area tertentu. Operasi ini tidak memiliki parameter yang dipelajari seperti bobot atau bias, tetapi berperan penting dalam mengurangi ukuran data yang diteruskan ke lapisan berikutnya. Dengan ukuran \emph{feature map} yang lebih kecil, jumlah operasi pada lapisan selanjutnya dapat dikurangi sehingga komputasi menjadi lebih ringan \cite{Goodfellow2016DeepLearning,AlexNetPaper}.
+
+    Secara matematis, operasi \emph{max pool} dapat dituliskan sebagai:
+    \begin{equation}
+        y_{c,i,j} =
+        \max_{\substack{0 \leq m < K_h \\ 0 \leq n < K_w}}
+        x_{c,\,iS+m,\,jS+n}
+        \label{eq:maxpool}
+    \end{equation}
+    dengan $x$ adalah \emph{feature map} masukan, $y$ adalah \emph{feature map} keluaran, $c$ adalah indeks kanal, $K_h$ dan $K_w$ adalah ukuran jendela pooling, serta $S$ adalah \emph{stride}. Jika digunakan jendela $2 \times 2$ dengan \emph{stride} 2, maka ukuran spasial \emph{feature map} akan berkurang menjadi setengah dari ukuran sebelumnya.
+
+    Ukuran keluaran dari operasi \emph{max pool} dapat dihitung dengan persamaan yang mirip dengan konvolusi:
+    \begin{equation}
+        H_{\text{out}} =
+        \left\lfloor
+        \frac{H_{\text{in}} - K_h}{S}
+        \right\rfloor + 1
+        \label{eq:maxpool_height}
+    \end{equation}
+    \begin{equation}
+        W_{\text{out}} =
+        \left\lfloor
+        \frac{W_{\text{in}} - K_w}{S}
+        \right\rfloor + 1
+        \label{eq:maxpool_width}
+    \end{equation}
+    Selain mengurangi ukuran data, \emph{max pool} juga membantu mempertahankan fitur yang paling dominan pada suatu area. Hal ini membuat jaringan lebih toleran terhadap sedikit pergeseran posisi objek pada citra, karena nilai fitur yang kuat tetap dapat dipertahankan meskipun posisinya tidak selalu sama persis.
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.95\textwidth]{gambar/pool.png}
+        \caption{Operasi Max Pool}
+        \label{fig:maxpool-operation}
+    \end{figure}
+
+  \subsection{Kuantitasi}
+  Kuantitasi merupakan proses mengubah representasi numerik dari presisi tinggi
+  menjadi presisi yang lebih rendah. Pada CNN, parameter seperti bobot, bias, dan
+  aktivasi pada awalnya direpresentasikan dalam format \emph{floating-point} karena
+  format tersebut fleksibel untuk proses pelatihan \cite{Zhang2015OptimizingCNNFPGA}. Namun, format
+  \emph{floating-point} tidak efisien untuk implementasi perangkat keras karena
+  membutuhkan rangkaian aritmetika yang lebih kompleks, ukuran data yang lebih
+  besar, serta konsumsi sumber daya yang lebih tinggi. Oleh karena itu, kuantitasi
+  menjadi tahap penting untuk mengubah model CNN agar lebih sesuai dengan
+  karakteristik FPGA.
+
+  Pada implementasi CNN berbasis FPGA, kuantitasi berperan langsung terhadap
+  efisiensi memori, bandwidth, jumlah sumber daya aritmetika, dan latensi
+  inferensi. Jacob et al. menunjukkan bahwa inferensi CNN dapat dijalankan dengan
+  aritmetika integer melalui skema kuantitasi yang tetap menjaga akurasi model
+  \cite{Jacob2018Quantization}. Gupta et al. menunjukkan bahwa jaringan saraf
+  dapat bekerja menggunakan representasi \emph{fixed-point} 16-bit dengan degradasi
+  akurasi yang kecil ketika proses pembulatan dilakukan secara tepat
+  \cite{Gupta2015LimitedPrecision}. Lin et al. kemudian membahas kuantitasi
+  \emph{fixed-point} pada jaringan konvolusional dengan menekankan pemilihan
+  \emph{bit-width} yang sesuai pada setiap layer \cite{Lin2016FixedPointQuantization}.
+  Pada konteks FPGA, Goyal et al. dan Solovyev et al. memperkuat bahwa perubahan
+  dari \emph{floating-point} menuju \emph{fixed-point} dapat menurunkan kebutuhan
+  komputasi dan memori sehingga model lebih layak diimplementasikan pada platform
+  embedded dan akselerator perangkat keras
+  \cite{Goyal2021FixedPointCNN,Solovyev2019FixedPointCNN}. Dengan demikian,
+  kuantitasi tidak hanya dilihat sebagai proses kompresi model, tetapi sebagai
+  bagian dari strategi perancangan arsitektur agar operasi CNN dapat dipetakan
+  secara efisien ke dalam jalur data FPGA.
+
+  Kuantitasi \emph{int8} berfokus pada pemetaan nilai real ke bilangan integer 8-bit
+  menggunakan faktor skala dan \emph{zero-point}. Jacob et al. menggunakan skema
+  ini untuk mendukung inferensi berbasis aritmetika integer, sedangkan
+  Krishnamoorthi menekankan bahwa kuantitasi 8-bit pada bobot dan aktivasi dapat
+  menurunkan ukuran model serta mempercepat inferensi pada perangkat yang mendukung
+  operasi integer \cite{Jacob2018Quantization,Krishnamoorthi2018QuantizingCNN}.
+
+  \begin{equation}
+      S = \frac{x_{\max} - x_{\min}}{q_{\max} - q_{\min}}
+      \label{eq:int8_scale}
+  \end{equation}
+
+  \begin{equation}
+      Z =
+      \operatorname{round}
+      \left(
+      q_{\min} - \frac{x_{\min}}{S}
+      \right)
+      \label{eq:int8_zero_point}
+  \end{equation}
+
+  \begin{equation}
+      q_8 =
+      \operatorname{clip}
+      \left(
+      \operatorname{round}
+      \left(
+      \frac{x}{S}
+      \right)
+      + Z,
+      q_{\min},
+      q_{\max}
+      \right)
+      \label{eq:int8_quantization}
+  \end{equation}
+
+  \begin{equation}
+      \hat{x}_8 = S(q_8 - Z)
+      \label{eq:int8_dequantization}
+  \end{equation}
+
+  Kuantitasi \emph{fixed-point} 16-bit menggunakan posisi bit pecahan yang tetap,
+  sehingga nilai real dikonversi menjadi bilangan integer bertanda dengan faktor
+  skala $2^F$. Pada penelitian ini, format yang digunakan adalah Q2.14, yaitu
+  representasi 16-bit bertanda dengan dua bit untuk bagian integer termasuk bit
+  tanda dan 14 bit untuk bagian fraksi. Konfigurasi ini memberikan rentang nilai
+  real sekitar $[-2, 2)$ dengan resolusi $2^{-14}$. Format tersebut sesuai
+  digunakan karena nilai parameter model berada pada rentang kecil dan tidak
+  keluar dari rentang $-2$ sampai $2$. Gupta et al. membuktikan bahwa representasi 16-bit
+  \emph{fixed-point} dapat digunakan pada jaringan saraf dengan hasil yang tetap
+  kompetitif, sedangkan Lin et al. dan Goyal et al. menunjukkan pentingnya
+  pemilihan jumlah bit dan posisi pecahan agar kesalahan kuantitasi tidak merusak
+  akurasi model \cite{Gupta2015LimitedPrecision,Lin2016FixedPointQuantization,Goyal2021FixedPointCNN}.
+  Pada format ini, $F$ menyatakan jumlah bit pecahan yang digunakan. Proses
+  kuantitasi dan pendekatan kembali ke nilai real dapat dituliskan sebagai berikut.
+
+  \begin{equation}
+      q_{16} =
+      \operatorname{clip}
+      \left(
+      \operatorname{round}(x \cdot 2^F),
+      -2^{15},
+      2^{15}-1
+      \right)
+      \label{eq:fixed_point_quantization}
+  \end{equation}
+
+  \begin{equation}
+      \hat{x}_{16} = q_{16} \cdot 2^{-F}
+      \label{eq:fixed_point_dequantization}
+  \end{equation}
+
+  Untuk parameter CNN, bobot, aktivasi, dan bias dapat dikonversi menggunakan
+  jumlah bit pecahan yang disesuaikan dengan kebutuhan masing-masing parameter.
+  Pada rancangan ini, bobot dan bias model menggunakan konfigurasi Q2.14 yang
+  sama agar format parameter konsisten ketika dimuat ke memori Verilog. Dengan
+  14 bit fraksi, perubahan kecil pada parameter tetap dapat direpresentasikan,
+  sedangkan dua bit bagian integer sudah cukup karena hasil pengamatan parameter
+  menunjukkan nilai tidak melewati rentang $-2$ sampai $2$.
+
+  \begin{equation}
+      q_w =
+      \operatorname{clip}
+      \left(
+      \operatorname{round}(w \cdot 2^{F_w}),
+      -2^{15},
+      2^{15}-1
+      \right)
+      \label{eq:fixed_weight_quantization}
+  \end{equation}
+
+  \begin{equation}
+      q_a =
+      \operatorname{clip}
+      \left(
+      \operatorname{round}(a \cdot 2^{F_a}),
+      -2^{15},
+      2^{15}-1
+      \right)
+      \label{eq:fixed_activation_quantization}
+  \end{equation}
+
+  \begin{equation}
+      q_b =
+      \operatorname{clip}
+      \left(
+      \operatorname{round}(b \cdot 2^{F_b}),
+      -2^{31},
+      2^{31}-1
+      \right)
+      \label{eq:fixed_bias_quantization}
+  \end{equation}
+
+  \emph{Trade-off} utama antara \emph{int8} dan \emph{fixed-point} 16-bit terletak pada
+  keseimbangan antara efisiensi dan kestabilan numerik. \emph{Int8} memberikan ukuran data
+  yang lebih kecil, kebutuhan memori yang lebih rendah, dan potensi bandwidth yang
+  lebih hemat, tetapi membutuhkan pemilihan skala, \emph{zero-point}, dan proses
+  kalibrasi yang lebih hati-hati agar akurasi tidak turun secara signifikan.
+  Sebaliknya, \emph{fixed-point} 16-bit membutuhkan sumber daya yang lebih besar
+  dibandingkan \emph{int8}, tetapi memberikan rentang dan ketelitian yang lebih aman untuk
+  menjaga hasil komputasi tetap dekat dengan model \emph{floating-point}. Pada
+  penelitian ini, \emph{fixed-point} 16-bit Q2.14 dipilih karena memberikan titik
+  tengah yang kuat antara efisiensi implementasi FPGA dan kestabilan akurasi
+  inferensi. Pemilihan dua bit integer dan 14 bit fraksi juga didasarkan pada
+  karakter parameter model yang berada di dalam rentang $-2$ sampai $2$, sehingga
+  bit yang tersedia dapat diprioritaskan untuk meningkatkan resolusi pecahan.
+
+  \subsection{Multiply Accumulate}
+  Multiply Accumulate (MAC) adalah operasi komputasi yang terdiri dari proses perkalian
+  dua nilai dan penjumlahan hasilnya ke nilai akumulasi sebelumnya. Secara umum, operasi
+  MAC dapat dituliskan sebagai berikut:
+
+  \begin{equation}
+      y = \sum_{i=0}^{N-1} x_i w_i + b
+      \label{eq:mac-eq}
+  \end{equation}
+
+  Pada persamaan \ref{eq:mac-eq}, $x_i$ merupakan data masukan, $w_i$ merupakan bobot,
+  dan $b$ merupakan nilai bias. Operasi ini banyak digunakan pada komputasi
+  (CNN), terutama pada proses konvolusi dan \emph{fully connected layer}.
+  Pada proses tersebut, setiap nilai keluaran diperoleh dari hasil
+  perkalian antara data masukan dan bobot, kemudian seluruh hasil perkalian
+  tersebut dijumlahkan.
+
+  Pada FPGA, operasi MAC dapat diimplementasikan menggunakan blok
+  logika umum atau menggunakan sumber daya khusus berupa DSP. Pada FPGA
+  seri 7, blok DSP48E1 memiliki struktur yang mendukung operasi perkalian,
+  penjumlahan, dan akumulasi, sehingga sesuai digunakan untuk mempercepat
+  operasi MAC \cite{Xilinx2018DSP48E1}. Penggunaan DSP membuat operasi
+  MAC lebih efisien dibandingkan jika seluruh operasi aritmetika dibangun
+  hanya menggunakan LUT dan FF.
+
+  Namun, jumlah DSP pada FPGA bersifat terbatas. Jika setiap operasi
+  perkalian dan akumulasi pada CNN dibuat secara paralel penuh, maka
+  kebutuhan DSP dapat meningkat sangat besar \cite{Yan2022ResourceMultiplexingCNN}. Oleh karena itu,
+  perancangan akselerator CNN pada FPGA perlu mempertimbangkan keseimbangan
+  antara jumlah operasi paralel, penggunaan DSP, dan waktu komputasi.
+
+  \subsection{Time Multiplexer}
+  Time multiplexer adalah teknik penggunaan satu sumber daya hardware secara
+  bergantian pada waktu yang berbeda. Dalam akselerator CNN,
+  teknik ini digunakan ketika jumlah operasi MAC yang dibutuhkan lebih
+  banyak dibandingkan jumlah DSP yang tersedia. Dengan teknik ini,
+  satu unit MAC tidak hanya digunakan untuk satu operasi saja, tetapi
+  dapat dipakai berulang untuk memproses beberapa data, channel,
+  filter, atau neuron secara berurutan.
+
+  Berbeda dengan paralel penuh yang menyediakan banyak unit MAC
+  sekaligus, time multiplexer menggunakan pendekatan berbasis
+  pembagian waktu. Setiap siklus clock atau beberapa siklus clock
+  digunakan untuk memproses bagian data tertentu, kemudian unit
+  komputasi yang sama digunakan kembali untuk bagian data berikutnya \cite{Zhang2015OptimizingCNNFPGA, Dua2020SystolicCNN, Umuroglu2017FINN}.
+  Pendekatan ini dapat mengurangi penggunaan resource FPGA,
+  tetapi waktu komputasi dapat menjadi lebih panjang karena
+  sebagian operasi dilakukan secara bergantian.
+
+  Time multiplexing berkaitan erat dengan keterbatasan resource
+  seperti DSP, LUT, dan memori internal \cite{amd2023dsp68595}. Beberapa penelitian
+  akselerator CNN pada FPGA menggunakan pendekatan \emph{resource multiplexing} untuk mengurangi
+  konsumsi hardware dengan cara memakai kembali unit komputasi
+  yang sama pada beberapa tahap proses \cite{Yan2022ResourceMultiplexingCNN}.
+  Pendekatan serupa juga digunakan pada arsitektur akselerator neural network
+  yang menyesuaikan jumlah resource komputasi terhadap kebutuhan
+  throughput tiap layer \cite{Umuroglu2017FINN}.
+
+  \subsection{Shift Register}
+
+  Shift register adalah rangkaian register yang digunakan untuk menyimpan dan
+  menggeser data dari satu posisi ke posisi berikutnya pada setiap siklus
+  \emph{clock}. Pada sistem digital, shift register banyak digunakan ketika data
+  harus diproses secara berurutan, terutama pada aliran data yang masuk secara
+  \emph{stream}. Setiap data baru yang masuk akan mendorong data sebelumnya ke
+  posisi berikutnya, sehingga beberapa data terakhir dapat tetap tersedia secara
+  bersamaan di dalam rangkaian register.
+
+  \begin{figure}[H]
+      \centering
+      \includegraphics[width=0.85\textwidth]{gambar/shift register ilustration.png}
+      \caption{Ilustrasi data \emph{input shift register}.}
+      \label{fig:shift-register-ilustration}
+  \end{figure}
+
+  Pada operasi konvolusi citra, shift register memiliki peran penting karena
+  kernel tidak hanya membutuhkan satu piksel, tetapi juga piksel-piksel tetangga
+  di sekitarnya. Misalnya pada kernel berukuran $3 \times 3$, proses konvolusi
+  membutuhkan sembilan nilai piksel yang berasal dari tiga baris dan tiga kolom
+  yang berdekatan \cite{AlexNetPaper}. Jika data citra masuk secara berurutan dari kiri ke kanan dan
+  dari atas ke bawah, maka sistem tidak dapat langsung memperoleh sembilan piksel
+  tersebut tanpa mekanisme penyimpanan sementara. Oleh karena itu, shift register
+  digunakan untuk mempertahankan beberapa piksel terakhir dalam satu baris,
+  sehingga susunan piksel horizontal dapat dibentuk secara bertahap.
+
+  Dalam akselerator CNN berbasis FPGA, shift register membantu membentuk
+  \emph{window} konvolusi secara langsung dari aliran data. Setelah data piksel
+  masuk ke dalam jalur pemrosesan, nilai-nilai piksel tersebut digeser pada setiap
+  siklus \emph{clock} hingga membentuk susunan data yang sesuai dengan ukuran
+  kernel. Dengan cara ini, operasi \emph{multiply accumulate} pada kernel dapat
+  dilakukan tanpa harus membaca ulang seluruh data citra dari memori utama.
+  Pendekatan seperti ini sejalan dengan implementasi CNN pada FPGA yang
+  menekankan penggunaan \emph{pipeline}, komputasi \emph{fixed-point}, serta
+  pengurangan akses memori eksternal untuk meningkatkan efisiensi sistem
+  \cite{Solovyev2019FixedPointCNN,Zhang2015OptimizingCNNFPGA}.
+
+
+
+  \subsection{First In First Out (FIFO)}
+
+  First In First Out atau FIFO adalah struktur penyimpanan data sementara yang
+  bekerja dengan prinsip data yang pertama masuk akan menjadi data pertama yang
+  keluar. FIFO banyak digunakan pada sistem digital untuk mengatur aliran data
+  antarblok, terutama ketika dua bagian sistem tidak selalu bekerja pada kecepatan
+  yang sama \cite{Cummings2002AsyncFIFO}. Dalam implementasi FPGA, FIFO dapat digunakan sebagai penyangga data
+  agar proses pengiriman dan penerimaan data tetap stabil meskipun terdapat
+  perbedaan waktu proses antarblok.
+
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=0.85\textwidth]{gambar/fifo-ilustration.png}
+      \caption{Ilustrasi FIFO}
+      \label{fig:fifo-ilustration}
+  \end{figure}
+
+  Pada arsitektur konvolusi, FIFO dapat digunakan sebagai \emph{line buffer} untuk
+  menyimpan satu atau beberapa baris data citra \cite{Solovyev2019FixedPointCNN}. Ketika piksel citra masuk secara
+  berurutan, FIFO menahan data dari baris sebelumnya sehingga data tersebut masih
+  tersedia ketika baris berikutnya sedang diproses. Untuk membentuk \emph{window}
+  $3 \times 3$, sistem umumnya membutuhkan dua FIFO sebagai penyangga dua baris
+  sebelumnya. Data dari baris saat ini, baris sebelumnya, dan dua baris sebelumnya
+  kemudian digabungkan dengan shift register untuk menghasilkan sembilan piksel
+  yang dibutuhkan oleh kernel konvolusi.
+
+  Hubungan antara FIFO dan shift register dapat dilihat sebagai dua tingkatan
+  penyimpanan yang saling melengkapi. FIFO bekerja pada tingkat baris citra,
+  sedangkan shift register bekerja pada tingkat piksel dalam satu baris \cite{Solovyev2019FixedPointCNN}. FIFO
+  menyediakan data vertikal dari baris yang berbeda, sedangkan shift register
+  menyusun data horizontal dari beberapa piksel yang berurutan. Dengan kombinasi
+  ini, sistem dapat membentuk \emph{sliding window} tanpa harus mengambil data
+  berulang kali dari memori utama. Hal ini penting karena operasi konvolusi pada
+  CNN membutuhkan akses data yang intensif, sehingga efisiensi penyimpanan
+  sementara dan penggunaan ulang data menjadi bagian penting dalam rancangan
+  akselerator CNN berbasis FPGA \cite{Zhang2015OptimizingCNNFPGA}.
+
+  \subsection{Finite State Machine}
+
+  Finite State Machine atau FSM merupakan model kendali sekuensial yang merepresentasikan
+  perilaku sistem dalam sejumlah \emph{state} terbatas. Pada setiap siklus kerja, FSM
+  membaca \emph{input}, mengevaluasi kondisi transisi, menentukan \emph{state} berikutnya,
+  kemudian menghasilkan \emph{output} sesuai dengan aturan transisi yang telah ditentukan seperti pada \emph{Pseudocode}~\ref{alg:fsm}.
+  Dengan pendekatan ini, proses kerja yang kompleks dapat dibagi menjadi beberapa tahap
+  yang lebih terstruktur, sehingga alur kendali sistem menjadi lebih mudah dirancang,
+  diamati, dan diverifikasi.
+
+  % fsm pseudocode
+  \begin{algorithm}
+      \caption{ inite State Machine Algorithm}
+      \label{alg:fsm}
+      \begin{algorithmic}[1]
+      \Require inputSignal, currentState, TransitionSet
+      \Ensure updated currentState, outputSignal
+
+      \Procedure{UpdateFSM}{inputSignal}
+          \Comment{Initialize default values}
+          \State nextState $\gets$ currentState
+          \State outputSignal $\gets$ DEFAULT\_OUTPUT
+
+          \Comment{Evaluate all possible state transitions}
+          \ForAll{transition $\in$ TransitionSet}
+              \If{transition.sourceState $==$ currentState \textbf{and} transition.inputCondition(inputSignal) $==$ true}
+                  \Comment{State transition}
+                  \State nextState $\gets$ transition.targetState
+
+                  \Comment{Generate output}
+                  \State outputSignal $\gets$ transition.outputAction(currentState, inputSignal, nextState)
+
+                  \State \textbf{break}
+              \EndIf
+          \EndFor
+
+          \Comment{Update the current state}
+          \State currentState $\gets$ nextState
+
+          \Comment{Return the generated output}
+          \State \Return outputSignal
+      \EndProcedure
+      \end{algorithmic}
+  \end{algorithm}
+
+  Dalam sistem digital, FSM banyak digunakan untuk mengatur proses yang membutuhkan
+  urutan kerja tertentu, seperti proses inisialisasi, pembacaan data, penulisan data,
+  sinkronisasi sinyal, dan pengendalian jalur \emph{data path}. Pada penelitian ini, FSM
+  digunakan sebagai bagian penting dalam pengendalian proses \emph{input-output}, kendali
+  transaksi AXI, kendali kamera, serta pengaturan tahapan komputasi pada CNN
+  \emph{Accelerator}. Kebutuhan kendali tersebut menjadi semakin penting pada implementasi
+  CNN di FPGA, karena proses komputasi CNN terdiri dari beberapa operasi berurutan seperti
+  konvolusi, aktivasi, \emph{pooling}, dan klasifikasi. CNN sendiri banyak digunakan pada
+  tugas klasifikasi citra karena kemampuannya dalam mengekstraksi fitur secara bertingkat
+  \cite{AlexNetPaper,Elharrouss2022BackbonesReviewFE}. Oleh karena itu, FSM berperan
+  sebagai pengatur aliran proses agar setiap modul dapat bekerja secara sinkron, mulai
+  dari penerimaan data citra, pemrosesan fitur, hingga keluaran hasil klasifikasi.
+
+  Pada sistem yang lebih kompleks, transisi FSM tidak hanya ditentukan oleh \emph{input}
+  utama, tetapi juga oleh kondisi kesiapan antarblok. Mekanisme ini berkaitan dengan
+  \emph{backpressure}, yaitu kondisi ketika sebuah modul harus menahan proses karena modul
+  berikutnya belum siap menerima data. Dalam implementasi \emph{advanced backpressure},
+  FSM dapat diperluas dengan sinyal kendali seperti \emph{valid}, \emph{ready},
+  \emph{busy}, \emph{done}, \emph{fifo empty}, dan \emph{fifo full}. Sinyal-sinyal
+  tersebut digunakan sebagai syarat transisi agar perpindahan \emph{state} hanya terjadi
+  ketika data tersedia dan jalur keluaran siap menerima data. Dengan demikian, FSM tidak
+  hanya berfungsi sebagai pengatur urutan kerja, tetapi juga sebagai mekanisme kontrol
+  aliran data untuk mencegah kehilangan data, pembacaan data kosong, atau penulisan data
+  ketika buffer sudah penuh.
+
+  \subsection{Backpressure}
+  Backpressure adalah mekanisme pengendalian aliran data yang digunakan ketika
+  suatu blok belum siap menerima data dari blok sebelumnya. Mekanisme ini umumnya
+  bekerja dengan sinyal \emph{valid} dan \emph{ready}. Sinyal \emph{valid}
+  menunjukkan bahwa data dari pengirim sudah tersedia, sedangkan sinyal \emph{ready}
+  menunjukkan bahwa penerima siap mengambil data tersebut \cite{ARM2020AXI,ARM2020IntroAXI}.
+
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{gambar/valid-ready-cnn.png}
+    \caption{Aliran sinyal \emph{valid} dan \emph{ready} pada sistem pipeline}
+    \label{fig:valid-ready-cnn}
+  \end{figure}
+
+  Berdasarkan Gambar~\ref{fig:valid-ready-cnn}, sinyal \emph{valid} mengalir
+  searah dengan aliran data, yaitu dari blok proses sebelumnya menuju blok proses
+  berikutnya. Sebagai contoh, ketika blok proses ke-\emph{N} menghasilkan data,
+  blok tersebut akan mengaktifkan sinyal \emph{valid} ke blok proses ke-\emph{N+1}.
+  Sebaliknya, sinyal \emph{ready} mengalir ke arah belakang, yaitu dari blok
+  penerima menuju blok pengirim. Sinyal ini digunakan untuk memberitahu bahwa
+  blok penerima sudah siap menerima dan memproses data berikutnya.
+
+  Jika sinyal \emph{ready} belum aktif, maka pengirim harus menahan data sampai
+  penerima siap. Dengan cara ini, data tidak hilang atau tertimpa oleh data berikutnya.
+  Pada sistem berbasis \emph{pipeline}, konsep backpressure penting untuk menjaga
+  aliran data tetap teratur, terutama ketika setiap blok memiliki waktu proses
+  yang berbeda \cite{ARM2020AXI}.
+
+  \subsection{Double Data Rate (DDR)}
+
+  Double Data Rate atau DDR merupakan memori eksternal yang digunakan untuk
+  menyediakan kapasitas penyimpanan lebih besar dibandingkan memori internal FPGA.
+  Pada sistem berbasis citra, kebutuhan memori menjadi penting karena data yang
+  diproses tidak hanya berupa satu piksel, tetapi dapat berupa satu frame penuh
+  atau blok data berukuran besar. Untuk citra RGB565 beresolusi $640 \times 480$,
+  satu frame membutuhkan kapasitas penyimpanan yang jauh lebih besar dibandingkan
+  penyimpanan lokal yang idealnya digunakan untuk buffer kecil, register, atau
+  blok komputasi. Oleh karena itu, DDR ditempatkan sebagai \emph{frame buffer}
+  utama, sedangkan BRAM digunakan untuk menyimpan data sementara pada
+  jalur pemrosesan yang lebih dekat dengan logika FPGA. Gambar
+  \ref{fig:ddr_axi_diagram} menunjukkan posisi DDR pada sistem kamera,
+  AXI, MIG, dan VGA.
+
+  \begin{figure}[H]
+      \centering
+      \includegraphics[width=0.95\textwidth]{gambar/ddr-axi-diagram.png}
+      \caption{Ilustrasi hubungan AXI, MIG, dan DDR pada sistem pemindahan data berbasis memori eksternal.}
+      \label{fig:ddr_axi_diagram}
+  \end{figure}
+
+  Advanced eXtensible Interface atau AXI merupakan protokol antarmuka yang digunakan
+  untuk menghubungkan modul komputasi dengan subsistem memori atau periferal pada
+  sistem digital. AXI mendukung transaksi \emph{read} dan \emph{write} secara
+  terpisah, memiliki kanal alamat, data, dan respons, serta memungkinkan transfer
+  data dalam bentuk \emph{burst}. Karakter ini membuat AXI sesuai untuk pemindahan
+  data berukuran besar karena beberapa data dapat dikirim atau diambil secara
+  berurutan tanpa harus membentuk alamat baru untuk setiap data. Pada sistem
+  pemrosesan citra, AXI dapat digunakan untuk mengirim data ke memori melalui AXI
+  \emph{write} master dan mengambil kembali data dari memori melalui AXI
+  \emph{read} master. Jika diperlukan, buffer lokal seperti FIFO atau BRAM dapat
+  ditempatkan di sisi modul untuk menyesuaikan laju data, tetapi mekanisme utama
+  pemindahan data tetap dilakukan melalui transaksi AXI \cite{ARMAMBAAXI4Spec}.
+
+  Memory Interface Generator atau MIG merupakan IP yang digunakan sebagai
+  pengendali akses DDR pada FPGA. DDR tidak dapat diakses secara langsung seperti
+  register biasa karena memori ini memiliki aturan waktu, proses inisialisasi,
+  kalibrasi, pengaturan alamat, dan sinyal fisik yang lebih kompleks. MIG
+  menyederhanakan bagian tersebut dengan menyediakan antarmuka yang dapat digunakan
+  oleh logika FPGA, salah satunya melalui AXI. Dengan adanya MIG, modul logika
+  tidak perlu mengatur sinyal fisik DDR secara langsung. Modul cukup membentuk
+  transaksi baca atau tulis melalui antarmuka AXI, sedangkan MIG menerjemahkan
+  transaksi tersebut menjadi operasi memori yang sesuai dengan protokol DDR. Peran
+  ini membuat MIG menjadi penghubung penting antara logika digital di dalam FPGA
+  dan memori eksternal yang memiliki aturan akses lebih ketat \cite{XilinxMIGUG586}.
+
+  Penggunaan DDR pada akselerator CNN dilakukan pada penelitian yang membutuhkan
+  penyimpanan data berukuran besar dan akses memori yang terstruktur. Solovyev et
+  al. menggunakan memori eksternal sebagai bagian dari sistem pemrosesan video
+  real-time, sementara memori lokal tetap digunakan untuk mendukung aliran data
+  yang dekat dengan blok komputasi \cite{Solovyev2019FixedPointCNN}. Zhang et al.
+  menggunakan DDR3 sebagai penyimpanan data utama pada akselerator CNN berbasis
+  FPGA, kemudian mengoptimalkan akses data menggunakan \emph{loop tiling} dan
+  pemanfaatan BRAM agar bandwidth memori dapat digunakan secara lebih efisien
+  \cite{Zhang2015OptimizingCNNFPGA}. Kedua penelitian tersebut menunjukkan bahwa
+  DDR berperan sebagai penyimpanan eksternal ketika ukuran data melebihi kapasitas
+  memori lokal FPGA, sedangkan memori internal digunakan untuk mempercepat akses
+  data yang sedang aktif diproses.
+
+  \subsection{FPGA ARTIX 7}
+
+  FPGA Artix-7 merupakan keluarga FPGA dari Xilinx yang dirancang untuk
+  memberikan keseimbangan antara performa, konsumsi daya, dan biaya implementasi.
+  Pada penelitian ini, board yang digunakan adalah Arty A7-100T dengan perangkat
+  FPGA XC7A100T. Board ini menyediakan sumber daya logika, memori internal, DSP,
+  dan DDR eksternal yang cukup untuk membangun sistem akselerator CNN skala
+  embedded. Spesifikasi utama Arty A7-100T ditunjukkan pada Tabel
+  \ref{tab:arty_a7_spec}.
+
+  \begin{table}[H]
+      \centering
+      \caption{Spesifikasi utama Arty A7-100T}
+      \label{tab:arty_a7_spec}
+      \begin{tabular}{ll}
+          \hline
+          \textbf{Komponen} & \textbf{Spesifikasi} \\
+          \hline
+          FPGA & Xilinx Artix-7 XC7A100T \\
+          LUT & 63400 \\
+          Flip-Flop & 126800 \\
+          Block RAM & 4860 Kb \\
+          DSP Slice & 240 DSP48E1 \\
+          DDR & 256 MB DDR3L \\
+          \hline
+      \end{tabular}
+  \end{table}
+
+  Jika dibandingkan dengan penelitian sebelumnya, Arty A7-100T berada pada kelas
+  menengah. Board ini memiliki sumber daya lebih besar dibandingkan FPGA lainnya
+  seperti Spartan-6 atau Cyclone IV yang digunakan pada penelitian Solovyev et al.,
+  tetapi masih lebih terbatas dibandingkan board kelas tinggi seperti Virtex-7 VC707
+  yang digunakan pada penelitian Zhang et al. \cite{Solovyev2019FixedPointCNN,Zhang2015OptimizingCNNFPGA}.
+  Kondisi ini membuat Arty A7-100T cukup mampu untuk implementasi CNN
+  \emph{accelerator}, karena desain harus benar-benar memperhatikan pemakaian
+  resource. Operasi MAC dapat dipetakan ke DSP48E1, data sementara dapat disimpan
+  pada BRAM, sedangkan FF dan LUT digunakan untuk membangun jalur kendali,
+  pipeline, FSM, serta register antarblok.
+
+  Dari sisi daya dan latensi, FPGA Artix-7 mendukung pendekatan yang lebih hemat
+  daya dibandingkan komputasi umum karena jalur data dapat dibuat khusus sesuai
+  kebutuhan algoritma. Penggunaan komputasi \emph{fixed-point}, DSP untuk operasi
+  MAC, serta pipeline dapat menurunkan latensi komputasi karena operasi tidak perlu
+  dijalankan sebagai instruksi perangkat lunak satu per satu. Namun, performa akhir
+  tetap bergantung pada keseimbangan antara jumlah operasi paralel, akses DDR, dan
+  penggunaan \emph{time multiplexing}. Semakin banyak operasi dibuat paralel, latensi
+  dapat ditekan, tetapi konsumsi resource dan daya dinamis meningkat. Sebaliknya,
+  pemakaian ulang resource dapat menghemat DSP dan LUT, tetapi waktu komputasi
+  menjadi lebih panjang.
+
+  \subsection{OV7670}
+
+  OV7670 merupakan sensor kamera CMOS beresolusi VGA yang dapat menghasilkan
+  citra hingga ukuran $640 \times 480$ piksel. Sensor ini banyak digunakan pada
+  implementasi FPGA karena menyediakan keluaran data paralel dan sinyal sinkronisasi
+  yang relatif mudah dihubungkan dengan logika digital. Konfigurasi internal kamera
+  dilakukan melalui Serial Camera Control Bus atau SCCB, sedangkan data citra
+  dikeluarkan melalui jalur data paralel yang disertai sinyal \emph{pixel clock},
+  HREF, dan VSYNC \cite{OmniVision2006OV7670}.
+
+  Pada aliran data kamera, sinyal VSYNC digunakan sebagai penanda pergantian
+  frame, HREF digunakan untuk menunjukkan bahwa data pada satu baris sedang valid,
+  dan \emph{pixel clock} digunakan sebagai acuan pengambilan data piksel. OV7670
+  dapat menghasilkan beberapa format keluaran, seperti YUV, RGB, dan RGB565.
+  Format RGB565 sering digunakan pada sistem FPGA karena satu piksel dapat
+  direpresentasikan dalam 16-bit, yaitu 5-bit merah, 6-bit hijau, dan 5-bit biru.
+  Format ini cukup ringan untuk disimpan dan diproses, tetapi tetap mampu
+  menampilkan warna yang memadai untuk sistem embedded vision.
+
+  Dalam sistem CNN berbasis kamera, OV7670 berperan sebagai sumber data visual
+  yang masuk ke sistem secara kontinu. Hal ini membuat logika penerima kamera harus
+  mampu membaca data berdasarkan sinyal sinkronisasi, menyusun data piksel dengan
+  benar, dan menjaga agar aliran data tidak terputus. Karena data kamera datang
+  mengikuti domain \emph{pixel clock}, rancangan FPGA perlu memperhatikan
+  sinkronisasi, buffering, dan validitas data sebelum data tersebut digunakan untuk
+  pemrosesan atau ditampilkan kembali.
+
+  \subsection{VGA}
+
+  Video Graphics Array atau VGA merupakan antarmuka tampilan analog yang
+  mengirimkan sinyal warna merah, hijau, dan biru bersama sinyal sinkronisasi
+  horizontal dan vertikal. Pada FPGA, tampilan VGA dibentuk dengan menghasilkan
+  data warna RGB dan sinyal timing yang sesuai dengan resolusi layar. Untuk
+  resolusi $640 \times 480$, sistem perlu menghasilkan urutan piksel, periode
+  \emph{blanking}, sinyal HSYNC, dan sinyal VSYNC agar monitor dapat menampilkan
+  gambar dengan stabil.
+
+  Pada penelitian ini, keluaran VGA dapat dibantu menggunakan Pmod VGA dari
+  Digilent. Pmod VGA menyediakan jalur warna 12-bit, yaitu 4-bit untuk merah,
+  4-bit untuk hijau, dan 4-bit untuk biru, serta dua sinyal sinkronisasi standar
+  berupa HSYNC dan VSYNC \cite{DigilentVGADisplay}. Modul ini
+  mempermudah FPGA untuk menghasilkan keluaran VGA karena konversi sinyal digital
+  RGB menuju level analog dilakukan melalui rangkaian resistor pada Pmod. Dengan
+  demikian, FPGA cukup menghasilkan data warna digital dan sinyal sinkronisasi
+  yang sesuai dengan timing VGA.
+
+  Dalam sistem embedded vision, VGA berfungsi sebagai jalur keluaran visual untuk
+  menampilkan hasil pembacaan kamera atau hasil pemrosesan citra. Keberadaan VGA
+  membuat sistem dapat diamati secara langsung tanpa harus selalu mengirim data ke
+  komputer. Dari sisi perancangan, bagian VGA menuntut aliran data yang stabil
+  karena tampilan layar bergerak mengikuti timing yang tetap. Jika data piksel tidak
+  tersedia pada saat dibutuhkan, tampilan dapat mengalami gangguan seperti warna
+  tidak sesuai, gambar bergeser, atau frame terlihat tidak stabil.
+
+\section{Analisis Perbandingan Metode}
+
+Pada penelitian sebelumnya menunjukkan bahwa hasil inferensi CNN pada FPGA dapat
+diselesaikan sebelum satu frame dapat selesai terbentuk. Camera OV7670 memiliki
+30 FPS \cite{OmniVision2006OV7670}. Sedangkan latensi terbesar didapat pada nilai 150 FPS \cite{Solovyev2019FixedPointCNN}.
+Sedangkan konsumsi daya pada FPGA relatif lebih rendah dibandingkan dengan CPU dan GPU.
+Efisiensi daya ini pada penelitian yang dilakukan oleh Qasaimeh et al. dan Guo et al. \cite{Qasaimeh2019ComparingEE, Guo2019FPGANNInferenceSurvey}.
+Hal ini menunjukkan bahwa FPGA cocok untuk digunakan dalam implementasi CNN dengan daya lebih rendah.
+
+\begin{table}[ht]
+    \centering
+    \caption{Perbandingan implementasi sistem pada penelitian terkait}
+    \label{tab:comparison_system}
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+            \textbf{Penelitian} &
+            \textbf{CNN} &
+            \textbf{Kamera} &
+            \textbf{VGA} &
+            \textbf{Board/Platform}
+            \\ \hline
+            Solovyev et al. \cite{Solovyev2019FixedPointCNN} &
+            Ya &
+            Ya &
+            Ya &
+            \emph{DE0-Nano} \& \emph{Intel Cyclone IV}
+            \\ \hline
+            Qiu et al. \cite{Qiu2016GoingDeeperFPGA} &
+            Ya &
+            -- &
+            -- &
+            \emph{Xilinx ZC706}
+            \\ \hline
+            Dua et al. \cite{Dua2020SystolicCNN} &
+            Ya &
+            -- &
+            -- &
+            \emph{Arria 10 GX1150} \& \emph{Stratix 10 GX2800}
+            \\ \hline
+            Navaneethan et al. \cite{Navaneethan2022OV7670VGA} &
+            -- &
+            Ya &
+            Ya &
+            \emph{Spartan-6} \& \emph{Artix-7}
+            \\ \hline
+            Sun et al. \cite{Sun2021MicroBlazeVideoProcessing} &
+            -- &
+            Ya &
+            Ya &
+            \emph{FPGA MicroBlaze based}
+            \\ \hline
+    \end{tabular}
+\end{table}
+
+Berdasarkan Tabel~\ref{tab:comparison_system}, penelitian terkait dapat dikelompokkan
+menjadi dua arah utama. Penelitian seperti Solovyev et al. sudah menunjukkan
+implementasi inferensi CNN secara \emph{end-to-end} pada FPGA, sedangkan Qiu et al.
+dan Dua et al. lebih menekankan optimasi akselerator CNN dari sisi komputasi model,
+arsitektur paralel, dan efisiensi operasi. Di sisi lain, Navaneethan et al. dan Sun et
+al. lebih berfokus pada integrasi sistem citra, yaitu pengambilan data dari kamera
+OV7670 dan penampilan citra melalui VGA, tetapi belum membahas akselerasi inferensi CNN.
+Hal ini menunjukkan adanya celah penelitian pada integrasi antara sistem akuisisi
+citra, tampilan video, dan akselerator CNN dalam satu platform FPGA. Oleh karena itu,
+penelitian ini tidak hanya berfokus pada implementasi CNN berbasis \emph{fixed-point},
+tetapi juga pada bagaimana sistem tersebut dapat diintegrasikan dengan periferal
+citra agar lebih mendekati kebutuhan aplikasi \emph{embedded vision} secara langsung.
+
+
+\begin{table}[ht]
+    \centering
+    \caption{Perbandingan performa penelitian CNN Accelerator}
+    \label{tab:comparison_performance}
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{|l|c|c|c|c|c|c|}
+        \hline
+            \textbf{Penelitian} &
+            \textbf{Latensi/FPS} &
+            \textbf{Arsitektur Model} &
+            \textbf{Daya (W)} &
+            \textbf{GOPS} &
+            \textbf{Loss} &
+            \textbf{Akurasi}
+            \\ \hline
+
+            \cite{Solovyev2019FixedPointCNN} &
+            $>$150 FPS &
+            CNN &
+            -- &
+            -- &
+            -- &
+            Tidak berubah setelah kuantisasi
+            \\ \hline
+
+            \cite{Qiu2016GoingDeeperFPGA} &
+            224.60 ms &
+            \emph{VGG16-SVD} &
+            9.63 &
+            137 &
+            -- &
+            $86.66\%$
+            \\ \hline
+
+            \cite{Dua2020SystolicCNN} &
+            140ms &
+            \emph{AlexNet} &
+            2,1 &
+            -- &
+            -- &
+            --
+            \\ \hline
+    \end{tabular}
+    }
+\end{table}
+
+Selain aspek integrasi sistem, perbandingan performa pada
+Tabel~\ref{tab:comparison_performance} juga menunjukkan bahwa
+konsumsi daya menjadi faktor penting dalam implementasi CNN.
+Pada penelitian Qiu et al., implementasi VGG16-SVD pada FPGA hanya
+membutuhkan daya sebesar 9,63 W, sedangkan platform CPU dan GPU yang
+digunakan sebagai pembanding memiliki konsumsi daya yang jauh lebih tinggi,
+yaitu 135 W untuk CPU dan 250 W untuk GPU \cite{Qiu2016GoingDeeperFPGA}.
+Meskipun GPU mampu memberikan performa komputasi yang lebih besar, konsumsi dayanya
+mencapai sekitar 26 kali lebih tinggi dibandingkan FPGA. Kondisi ini memperlihatkan
+bahwa CPU dan GPU tidak selalu menjadi pilihan paling efisien untuk sistem
+\emph{real-time} dan \emph{embedded}, terutama ketika batasan daya dan latensi
+menjadi pertimbangan utama. Dengan demikian, FPGA menjadi alternatif yang relevan
+karena dapat menyediakan jalur komputasi khusus melalui paralelisme,
+\emph{pipeline}, dan representasi \emph{fixed-point} sehingga proses inferensi dapat
+dilakukan dengan konsumsi daya yang lebih rendah.

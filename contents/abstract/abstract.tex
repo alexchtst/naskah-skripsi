@@ -1,0 +1,7 @@
+\textit{
+	The implementation of a \emph{Convolutional Neural Network} (CNN) in an embedded system requires a design that is accurate, low latency, low power, and integrable with an image acquisition pipeline. This research designs and integrates a 16-bit fixed-point CNN accelerator on the Digilent Arty A7-100T FPGA board, with an OV7670 camera as the image source, DDR3 SDRAM as the frame buffer, a region-of-interest module, a Verilog-based CNN accelerator, an argmax module, and VGA output. The CNN model was trained in Python using the $28 \times 28$ MNIST dataset, then its weights and biases were quantized into Q2.14 without saturation. The implementation shows that the CNN accelerator produces inference output in 3802 clock cycles, or 38.02 $\mu$s at 100 MHz, with a throughput of approximately 26302 inferences per second. The estimated total on-chip power of the integrated system is 1.099 W, and DSP usage reaches 235 out of 240 available DSP blocks or about 97\% on the Arty A7-100T board, indicating that the camera, memory, CNN accelerator, and display can be integrated on FPGA with the main limitation being the very small remaining DSP margin.
+}
+
+\bigskip
+\noindent
+\textbf{Keywords :} \emph{CNN}, \emph{FPGA}, 16-bit \emph{fixed-point}, Arty A7-100T, OV7670, CNN accelerator.
